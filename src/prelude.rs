@@ -15,11 +15,10 @@ use crate::geography::{
 
 use crate::biology::{
     Color,
-    Ant,
 };
 
 // TODO: Abstract away
-// ... 
+// ...
 // TODO
 
 pub fn simple_enum_iter<T: FromPrimitive>(n : i8) -> impl Iterator<Item=T> {
@@ -47,13 +46,13 @@ pub fn adjs(Pos{x, y} : Pos) -> HashMap<Dir, Option<Pos>> {
 }
 
 pub fn adj_feature(Pos{x, y} : Pos, d : Dir)
-    -> Result<(MapToken, Option<Ant>), LookupError>
+    -> Result<MapToken, LookupError>
 {
     todo!()
 }
 
 pub fn adj_features(Pos{x, y} : Pos)
-    -> HashMap<Dir, Result<(MapToken, Option<Ant>), LookupError>>
+    -> HashMap<Dir, Result<MapToken, LookupError>>
 {
     todo!()
 }
