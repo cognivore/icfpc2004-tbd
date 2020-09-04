@@ -1,5 +1,6 @@
 pub mod example_module;
 pub mod dev_server;
+pub mod vis_server;
 
 // produced by build.rs
 include!(concat!(env!("OUT_DIR"), "/entry_points.rs"));

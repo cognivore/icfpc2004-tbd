@@ -21,7 +21,7 @@ pub fn dev_server_example() {
                     let mut cnt = state.lock().unwrap();
                     *cnt += 1;
                     resp.code("200 OK")
-                        .header("Content-Type", "text/html")
+                        .header("Content-Type", "text/html; charset=utf8")
                         .body(format!("hello, <b>{}</b>!", *cnt))
                 }
                 _ => resp.code("404 Not Found").body("not found"),
