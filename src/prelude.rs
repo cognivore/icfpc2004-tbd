@@ -1,8 +1,4 @@
-// TODO: remove when it's implemented
-#![allow(unused_imports, unused_variables, unused_mut)]
-
 use num_traits::FromPrimitive;
-use num_derive::FromPrimitive;
 
 use std::collections::HashMap;
 
@@ -12,12 +8,12 @@ use crate::geometry::{
     Pos,
 };
 
-use crate::geography::{
-    MapToken,
-};
-
 use crate::biology::{
     Color,
+};
+
+use crate::utils::{
+    even,
 };
 
 // TODO: Abstract away
@@ -29,46 +25,63 @@ pub fn simple_enum_iter<T: FromPrimitive>(n : i8) -> impl Iterator<Item=T> {
 }
 
 pub fn turn(lr : LR, dir : Dir) -> Dir {
-    todo!()
+    match lr {
+        LR::Left => dir.cw(5),
+        LR::Right => dir.cw(1),
+    }
 }
 
-pub fn adj_unsafe(Pos{x, y} : Pos, d : Dir) -> Pos {
-    todo!()
+pub fn adj_unsafe(p : Pos, d : Dir) -> Pos {
+    if let Some(a) = adj(p,d) {
+        return a
+    } else {
+        panic!("No adjacent cell in that direction!");
+    }
+
 }
 
-pub fn adj(p : Pos, d : Dir) -> Option<Pos> {
-    todo!()
+pub fn adj(Pos{x,y} : Pos, d : Dir) -> Option<Pos> {
+    match d {
+        Dir::E  => Pos{x: x+1, y: y}.inbound(),
+        Dir::SE => if even(y) {Pos{x:x,y:y+1}.inbound()} else {Pos{x:x+1,y:y+1}.inbound()},
+        Dir::SW => if even(y) {
+            if x == 0 { None } else { Pos{x:x-1,y:y+1}.inbound() }
+        } else { Pos{x:x,y:y+1}.inbound() },
+        Dir::W  => if x == 0 { None } else { Pos{x:x-1,y:y}.inbound() },
+        Dir::NW => if y == 0 { None } else {
+            if even(y) {
+                if x == 0 { None } else { Pos{x:x-1,y:y-1}.inbound() }
+            } else { Pos{x:x,y:y-1}.inbound() }
+        },
+        Dir::NE => if y == 0 { None } else {
+            if even(y) {
+                Pos{x:x,y:y-1}.inbound()
+            } else { Pos{x:x+1,y:y-1}.inbound() }
+        },
+    }
 }
 
-pub fn adjs_unsafe(Pos{x, y} : Pos) -> HashMap<Dir, Pos> {
-    todo!()
+pub fn adjs_unsafe(p : Pos) -> HashMap<Dir, Pos> {
+    let mut adjs_unsafe = HashMap::new();
+
+    for (k,v) in adjs(p).iter() {
+        if let Some(pos) = v {
+            adjs_unsafe.insert(*k,*pos);
+        } else {
+            continue;
+        }
+    }
+
+    adjs_unsafe
 }
 
-pub fn adjs(Pos{x, y} : Pos) -> HashMap<Dir, Option<Pos>> {
-    todo!()
-}
+pub fn adjs(p : Pos) -> HashMap<Dir, Option<Pos>> {
+    let mut adjs = HashMap::new();
 
-pub fn adj_feature(Pos{x, y} : Pos, d : Dir)
-    -> Result<MapToken, LookupError>
-{
-    todo!()
-}
-
-pub fn adj_features(Pos{x, y} : Pos)
-    -> HashMap<Dir, Result<MapToken, LookupError>>
-{
-    todo!()
-}
-
-pub fn even< I : std::ops::BitAnd<Output = I> +
-                 PartialEq >
-           (x : I) -> bool {
-    todo!()
-}
-
-pub enum LookupError {
-    HexOutOfBounds,
-    NotFound,
+    for d in simple_enum_iter::<Dir>(6) {
+        adjs.insert(d,adj(p,d));
+    }
+    adjs
 }
 
 // Biology functions

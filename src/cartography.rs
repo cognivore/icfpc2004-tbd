@@ -14,14 +14,33 @@ use crate::geography::{
 };
 
 use crate::geometry::{
-    Pos
+    Dir,
+    Pos,
 };
+
+pub enum LookupError {
+    HexOutOfBounds,
+    NotFound,
+}
 
 pub struct World(pub HashMap<Pos, MapToken>);
 impl World {
     pub fn new() -> World {
         World(HashMap::new())
     }
+
+    pub fn adj_feature(Pos{x, y} : Pos, d : Dir)
+        -> Result<MapToken, LookupError>
+    {
+        todo!()
+    }
+
+    pub fn adj_features(Pos{x, y} : Pos)
+        -> HashMap<Dir, Result<MapToken, LookupError>>
+    {
+        todo!()
+    }
+
 }
 
 pub fn parse_world(x : usize, y : usize, input : &str)
