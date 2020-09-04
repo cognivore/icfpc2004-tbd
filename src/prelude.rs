@@ -9,9 +9,13 @@ use crate::geometry::{
     Pos,
 };
 
+use crate::biology::{
+    Color,
+    Ant,
+};
+
 // TODO: Abstract away
 pub enum MapToken {}
-pub enum Ant {}
 // TODO
 
 pub fn simple_enum_iter<T: FromPrimitive>(n : i8) -> impl Iterator<Item=T> {
@@ -59,6 +63,15 @@ pub fn even< I : std::ops::BitAnd<Output = I> +
 pub enum LookupError {
     HexOutOfBounds,
     NotFound,
+}
+
+// Biology functions
+
+pub fn other_color(c : Color) -> Color {
+    match c {
+        Color::Red => Color::Black,
+        Color::Black => Color::Red,
+    }
 }
 
 // ENTRY_POINT
