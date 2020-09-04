@@ -1,3 +1,6 @@
+// TODO: remove when it's implemented
+#![allow(unused_imports, unused_variables, unused_mut)]
+
 pub enum Dir {
     E,
     SE,

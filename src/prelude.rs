@@ -1,3 +1,6 @@
+// TODO: remove when it's implemented
+#![allow(unused_imports, unused_variables, unused_mut)]
+
 use num_traits::FromPrimitive;
 use num_derive::FromPrimitive;
 
