@@ -3,7 +3,14 @@ name = "icfpc2004-tbd"
 version = "0.1.0"
 edition = "2018"
 
-[dependencies]
-
 [features]
 clippy = []  # https://github.com/rust-lang/cargo/issues/8075#issuecomment-610259732
+
+[dependencies]
+enum-display-derive = "0.1.0"
+num-traits = "0.2"
+num-derive = "0.3"
+bimap = "0.4"
+quickcheck = "0.9"
+quickcheck_macros = "0.9"
+rand = "0.7"
