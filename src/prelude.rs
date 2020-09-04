@@ -9,13 +9,17 @@ use crate::geometry::{
     Pos,
 };
 
+use crate::geography::{
+    MapToken,
+};
+
 use crate::biology::{
     Color,
     Ant,
 };
 
 // TODO: Abstract away
-pub enum MapToken {}
+// ... 
 // TODO
 
 pub fn simple_enum_iter<T: FromPrimitive>(n : i8) -> impl Iterator<Item=T> {
