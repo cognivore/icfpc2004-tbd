@@ -19,6 +19,7 @@ pub enum LR {
     Right,
 }
 
+#[derive(PartialEq, Eq, Hash)]
 pub struct Pos {
     pub x : u8,
     pub y : u8,
