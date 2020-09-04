@@ -134,4 +134,19 @@ mod tests {
             assert_eq!(*i, rnd.next(0x3FFF));
         }
     }
+
+    #[test]
+    fn test_turn() {
+        assert_eq!(Dir::NE, turn(LR::Left,  Dir::E));
+        assert_eq!(Dir::SE, turn(LR::Right, Dir::E));
+        assert_ne!(Dir::W,  turn(LR::Right, Dir::E));
+    }
+
+    #[test]
+    fn test_adj() {
+        assert_eq!(Some(Pos{x:0,y:1}), adj(Pos{x:0,y:0}, Dir::SE));
+        assert_ne!(Some(Pos{x:2,y:2}), adj(Pos{x:2,y:1}, Dir::NE));
+        assert_eq!(None, adj(Pos{x:0,y:0}, Dir::NW));
+    }
+
 }

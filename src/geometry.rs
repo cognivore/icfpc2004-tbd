@@ -28,7 +28,7 @@ pub enum LR {
     Right,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct Pos {
     pub x : u8,
     pub y : u8,
@@ -52,7 +52,7 @@ impl Pos {
     }
 
     pub fn inbound(self) -> Option<Pos> {
-        if self.out_of_bounds() {
+        if !self.out_of_bounds() {
             Some(self)
         } else {
             None
