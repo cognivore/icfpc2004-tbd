@@ -1,5 +1,6 @@
 pub mod example_module;
 pub mod dev_server;
+pub mod utils;
 pub mod prelude;
 pub mod geometry;
 pub mod biology;
