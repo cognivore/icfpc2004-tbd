@@ -1,0 +1,19 @@
+<meta charset="utf-8">
+<link rel="stylesheet" href="style.css">
+<link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+
+<title>ants</title>
+
+<div id="error-message" style="background-color: red; position: fixed; display: none">
+  unhandled error, see console logs
+</div>
+<script>
+  window.onerror = window.onunhandledrejection = () => {
+    document.getElementById('error-message').style.display = 'block';
+  };
+</script>
+
+<p><i>mouse drag and wheel</i></p>
+<canvas id="canvas" width=500 height=400></canvas>
+
+<script type="module" src="main.js"></script>
