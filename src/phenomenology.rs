@@ -13,10 +13,10 @@ pub enum SenseCondition {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub struct Marker(u8);
+pub struct Marker(pub usize);
 
 impl Marker {
-    pub fn new(i: u8) -> Self {
+    pub fn new(i: usize) -> Self {
         assert!(i < 6);
         Marker(i)
     }

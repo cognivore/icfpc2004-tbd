@@ -53,6 +53,10 @@ use crate::geometry::{
     adj,
 };
 
+use crate::phenomenology::{
+    Marker,
+};
+
 use crate::prelude::{
     simple_enum_iter,
     even,
@@ -180,6 +184,24 @@ impl World {
         return false;
     }
 
+    pub fn check_marker_at(self, p : Pos, c : Color, m : Marker) -> bool {
+        if let Some(Clear(Contents { markers, .. } )) = self.data.get(&p) {
+            if let Some(cms) = markers.0.get(&c) {
+                return cms.get(m.0);
+            }
+        }
+        return false;
+    }
+
+    pub fn check_any_marker_at(self, p : Pos, c : Color) -> bool {
+        if let Some(Clear(Contents { markers, .. } )) = self.data.get(&p) {
+            if let Some(cms) = markers.0.get(&c) {
+                return !cms.is_empty();
+            }
+        }
+        return false;
+    }
+
     pub fn some_ant_is_at(self, p : Pos) -> bool {
         if let Some(Clear(Contents { ant : Some(_), .. } )) = self.data.get(&p) {
             return true;
@@ -226,6 +248,22 @@ impl World {
     pub fn set_food_at(&mut self, p : Pos, f : Food) {
         if let Some(Clear(t)) = self.data.get_mut(&p) {
             t.food = f;
+        }
+    }
+
+    pub fn set_marker_at(&mut self, p : Pos, c : Color, m : Marker) {
+        if let Some(Clear(Contents { markers, .. } )) = self.data.get_mut(&p) {
+            if let Some(cms) = markers.0.get_mut(&c) {
+                cms.set(m.0, true);
+            }
+        }
+    }
+
+    pub fn clear_marker_at(&mut self, p : Pos, c : Color, m : Marker) {
+        if let Some(Clear(Contents { markers, .. } )) = self.data.get_mut(&p) {
+            if let Some(cms) = markers.0.get_mut(&c) {
+                cms.set(m.0, false);
+            }
         }
     }
 
