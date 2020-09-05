@@ -130,6 +130,14 @@ impl World {
         }
     }
 
+    pub fn feature(self, p : Pos) -> Result<MapToken, LookupError> {
+        if let Some(token) = self.data.get(&p) {
+            Ok(token.clone())
+        } else {
+            Err(LookupError::NotFound)
+        }
+    }
+
     pub fn adj_feature(self, p : Pos, d : Dir)
         -> Result<MapToken, LookupError>
     {
@@ -152,6 +160,47 @@ impl World {
             res.insert(d, self.clone().adj_feature(p, d));
         }
         res
+    }
+
+    //Accessor functions
+    pub fn rocky(self, p : Pos) -> bool {
+        todo!()
+    }
+
+    pub fn anthill_at(self, p : Pos) -> bool {
+        todo!()
+    }
+
+    pub fn some_ant_is_at(self, p : Pos) -> bool {
+        todo!()
+    }
+
+    pub fn ant_at(self) -> Ant {
+        todo!()
+    }
+
+    pub fn set_ant_at(&mut self, p : Pos, a : Ant) {
+        todo!()
+    }
+
+    pub fn clear_ant_at(&mut self, p : Pos) {
+        todo!()
+    }
+
+    pub fn ant_is_alive(self, id : u8) -> bool {
+        todo!()
+    }
+
+    pub fn find_ant(self, id : u8) -> Pos {
+        todo!()
+    }
+
+    pub fn food_at(self, p : Pos) -> Food {
+        todo!()
+    }
+
+    pub fn set_food_at(&mut self, f : Food) {
+        todo!()
     }
 
 }
