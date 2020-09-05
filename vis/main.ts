@@ -61,52 +61,76 @@ function draw_ant(
     ctx.restore();
 }
 
+interface Transform {
+    offset_x: number,
+    offset_y: number,
+    scale: number,
+}
+
 function transform(offset_x: number, offset_y: number, scale: number, col: number, row: number): {x: number, y: number} {
     let x = (col * 2 + row % 2 + 1) * 0.5 * H_SCALE * scale + offset_x;
     let y = (row + 0.666) * 0.75 * scale + offset_y;
     return {x, y};
 }
 
-function draw_background(offset_x: number, offset_y: number, scale: number, bg: Background) {
+function zoom(tr: Transform, centex_x: number, center_y: number, factor: number) {
+    let x = (centex_x - tr.offset_x) / tr.scale;
+    let y = (center_y - tr.offset_y) / tr.scale;
+
+    let old_scale = tr.scale;
+    tr.scale *= factor;
+
+    tr.offset_x += x * (old_scale - tr.scale);
+    tr.offset_y += y * (old_scale - tr.scale);
+
+}
+
+function apply_transform(tr: Transform, col: number, row: number): {x: number, y: number} {
+    let x = (col * 2 + row % 2 + 1) * 0.5 * H_SCALE * tr.scale + tr.offset_x;
+    let y = (row + 0.666) * 0.75 * tr.scale + tr.offset_y;
+    return {x, y};
+}
+
+function draw_background(tr: Transform, bg: Background) {
     ctx.fillStyle = 'black';
     bg.rocks.forEach(([j, i]) => {
-        let {x, y} = transform(offset_x, offset_y, scale, j, i);
-        hex_path(x, y, scale);
+        let {x, y} = apply_transform(tr, j, i);
+        hex_path(x, y, tr.scale);
         ctx.fill();
     });
     ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
     bg.red_anthill.forEach(([j, i]) => {
-        let {x, y} = transform(offset_x, offset_y, scale, j, i);
-        hex_path(x, y, 0.9 * scale);
+        let {x, y} = apply_transform(tr, j, i);
+        hex_path(x, y, 0.9 * tr.scale);
         ctx.stroke();
     });
     ctx.strokeStyle = 'rgba(0, 0, 255, 0.3)';
     bg.black_anthill.forEach(([j, i]) => {
-        let {x, y} = transform(offset_x, offset_y, scale, j, i);
-        hex_path(x, y, 0.9 * scale);
+        let {x, y} = apply_transform(tr, j, i);
+        hex_path(x, y, 0.9 * tr.scale);
         ctx.stroke();
     });
 }
 
-function draw_frame(offset_x: number, offset_y: number, scale: number, frame: ReplayFrame) {
+function draw_frame(tr: Transform, frame: ReplayFrame) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
     frame.food.forEach(([j, i, amount]) => {
-        let {x, y} = transform(offset_x, offset_y, scale, j, i);
+        let {x, y} = apply_transform(tr, j, i);
         ctx.fillStyle = '#0f0';
-        hex_path(x, y, Math.sqrt(amount / 10) * scale);
+        hex_path(x, y, Math.sqrt(amount / 10) * tr.scale);
         ctx.fill();
-        if (scale >= 15) {
+        if (tr.scale >= 15) {
             ctx.fillStyle = 'black';
             ctx.fillText('' + amount, x, y);
         }
     })
 
     frame.ants.forEach((ant) => {
-        let {x, y} = transform(offset_x, offset_y, scale, ant.x, ant.y);
+        let {x, y} = apply_transform(tr, ant.x, ant.y);
         let color = ant.color == 'red' ? 'red' : 'blue';
-        draw_ant({ x, y, dir: ant.dir, color, has_food: ant.has_food, size: scale });
+        draw_ant({ x, y, dir: ant.dir, color, has_food: ant.has_food, size: tr.scale });
     });
 }
 
@@ -135,14 +159,14 @@ async function main() {
         if (f.frame_no == frame_no) {
             document.getElementById('frame_no')!.innerText = '' + frame_no;
             frame = f;
-            draw_stuff(offset_x, offset_y, scale);
+            draw_stuff(tr);
         }
     }
 
-    let draw_stuff = (offset_x: number, offset_y: number, scale: number) => {
+    let draw_stuff = (tr: Transform) => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        draw_background(offset_x, offset_y, scale, bg);
-        draw_frame(offset_x, offset_y, scale, frame);
+        draw_background(tr, bg);
+        draw_frame(tr, frame);
     };
 
     let max_x = Math.max(...bg.rocks.map(([x, y]) => x));
@@ -153,11 +177,12 @@ async function main() {
 
     let hor_size = H_SCALE * (max_x + 1 + 0.5);
     let ver_size = (max_y + 1) * 0.75 + 0.25;
-
-    let offset_x = 0;
-    let offset_y = 0;
-    let scale = Math.min(canvas.width / hor_size, canvas.height / ver_size);
-    draw_stuff(offset_x, offset_y, scale);
+    let tr = {
+        offset_x: 0,
+        offset_y: 0,
+        scale: Math.min(canvas.width / hor_size, canvas.height / ver_size),
+    };
+    draw_stuff(tr);
 
     document.onkeydown = e => {
         switch (e.code) {
@@ -190,27 +215,16 @@ async function main() {
         let r = canvas.getBoundingClientRect();
         let x = e.clientX - r.left;
         let y = e.clientY - r.top;
-
-        x -= offset_x;
-        y -= offset_y;
-        x /= scale;
-        y /= scale;
-
-        let old_scale = scale;
-        scale *= Math.exp(-delta * 0.002);
-
-        offset_x += x * (old_scale - scale);
-        offset_y += y * (old_scale - scale);
-
-        requestAnimationFrame(() => draw_stuff(offset_x, offset_y, scale));
+        zoom(tr, x, y, Math.exp(-delta * 0.002));
+        requestAnimationFrame(() => draw_stuff(tr));
         e.preventDefault();
     };
 
     canvas.onpointermove = (e) => {
         if (e.buttons == 1) {
-            offset_x += e.movementX;
-            offset_y += e.movementY;
-            requestAnimationFrame(() => draw_stuff(offset_x, offset_y, scale));
+            tr.offset_x += e.movementX;
+            tr.offset_y += e.movementY;
+            requestAnimationFrame(() => draw_stuff(tr));
         }
     }
 }
