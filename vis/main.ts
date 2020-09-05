@@ -1,4 +1,5 @@
 import assert from './assert.js';
+import { Match, Background, ReplayFrame } from './types.js';
 
 const H_SCALE = Math.sqrt(3) * 0.5;
 
@@ -60,69 +61,87 @@ function draw_ant(
     ctx.restore();
 }
 
-function draw(offset_x: number, offset_y: number, scale: number, lines: string[]) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function transform(offset_x: number, offset_y: number, scale: number, col: number, row: number): {x: number, y: number} {
+    let x = (col * 2 + row % 2 + 1) * 0.5 * H_SCALE * scale + offset_x;
+    let y = (row + 0.666) * 0.75 * scale + offset_y;
+    return {x, y};
+}
 
-    ctx.fillStyle = 'gray';
-    ctx.strokeStyle = 'black';
+function draw_background(offset_x: number, offset_y: number, scale: number, bg: Background) {
+    ctx.fillStyle = 'black';
+    bg.rocks.forEach(([j, i]) => {
+        let {x, y} = transform(offset_x, offset_y, scale, j, i);
+        hex_path(x, y, scale);
+        ctx.fill();
+    });
+    ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
+    bg.red_anthill.forEach(([j, i]) => {
+        let {x, y} = transform(offset_x, offset_y, scale, j, i);
+        hex_path(x, y, 0.9 * scale);
+        ctx.stroke();
+    });
+    ctx.strokeStyle = 'rgba(0, 0, 255, 0.3)';
+    bg.black_anthill.forEach(([j, i]) => {
+        let {x, y} = transform(offset_x, offset_y, scale, j, i);
+        hex_path(x, y, 0.9 * scale);
+        ctx.stroke();
+    });
+}
+
+function draw_frame(offset_x: number, offset_y: number, scale: number, frame: ReplayFrame) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    lines.forEach((line, i) => {
-        let y = (i + 0.666) * 0.75 * scale + offset_y;
-        if (y + scale < 0 || y - scale > canvas.height) {
-            return;
+    frame.food.forEach(([j, i, amount]) => {
+        let {x, y} = transform(offset_x, offset_y, scale, j, i);
+        ctx.fillStyle = '#0f0';
+        hex_path(x, y, Math.sqrt(amount / 10) * scale);
+        ctx.fill();
+        if (scale >= 15) {
+            ctx.fillStyle = 'black';
+            ctx.fillText('' + amount, x, y);
         }
-        Array.from(line).forEach((c, j) => {
-            let x = (j + 1) * 0.5 * H_SCALE * scale + offset_x;
-            if (x + scale < 0 || x - scale > canvas.width) {
-                return;
-            }
-            if (c == '#') {
-                ctx.fillStyle = 'black';
-                hex_path(x, y, scale);
-                ctx.fill();
-            } else if (c == '+' || c == '-') {
-                ctx.strokeStyle = c == '+' ? 'rgba(255, 0, 0, 0.3)' : 'rgba(0, 0, 255, 0.3)';
-                let color = c == '+' ? 'red' : 'blue';
-                hex_path(x, y, 0.9 * scale);
-                ctx.stroke();
-                draw_ant({ x, y, dir: 0, color, has_food: i % 2 == 0 && j / 2 % 2 == 0, size: scale });
-            }
-            else if (/\d/.test(c)) {
-                ctx.fillStyle = '#0f0';
-                hex_path(x, y, Math.sqrt(parseInt(c) / 10) * scale);
-                ctx.fill();
-                if (scale >= 15) {
-                    ctx.fillStyle = 'black';
-                    ctx.fillText(c, x, y);
-                }
-            }
-        });
+    })
+
+    frame.ants.forEach((ant) => {
+        let {x, y} = transform(offset_x, offset_y, scale, ant.x, ant.y);
+        let color = ant.color == 'red' ? 'red' : 'blue';
+        draw_ant({ x, y, dir: ant.dir, color, has_food: ant.has_food, size: scale });
     });
 }
 
 async function main() {
-    // let resp = await fetch('/data/tiny.world');
-    let resp = await fetch('/data/sample0.world');
-    assert(resp.ok);
-    let text = await resp.text();
-    let lines = text.trimEnd().split('\n');
-    let width = parseInt(lines[0]);
-    let height = parseInt(lines[1]);
-    lines = lines.slice(2);
-    assert(lines.length == height);
+    let { hash } = window.location;
+    assert(hash.startsWith('#'), hash);
+    hash = hash.slice(1);
+    let match = JSON.parse(decodeURIComponent(hash)) as Match;
+    let r = await fetch('/background?match=' + encodeURIComponent(JSON.stringify(match)));
+    assert(r.ok);
+    let bg = await r.json() as Background;
+    
+    r = await fetch('/frame?match=' + encodeURIComponent(JSON.stringify(match)) + '&frame_no=0');
+    assert(r.ok);
+    let frame = await r.json() as ReplayFrame;
+
+    let draw_stuff = (offset_x: number, offset_y: number, scale: number) => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        draw_background(offset_x, offset_y, scale, bg);
+        draw_frame(offset_x, offset_y, scale, frame);
+    };
+
+    let max_x = Math.max(...bg.rocks.map(([x, y]) => x));
+    let max_y = Math.max(...bg.rocks.map(([x, y]) => y));
 
     canvas = document.getElementById('canvas') as HTMLCanvasElement;
     ctx = canvas.getContext('2d')!;
 
-    let hor_size = H_SCALE * (width + 0.5);
-    let ver_size = height * 0.75 + 0.25;
+    let hor_size = H_SCALE * (max_x + 1 + 0.5);
+    let ver_size = (max_y + 1) * 0.75 + 0.25;
 
     let offset_x = 0;
     let offset_y = 0;
     let scale = Math.min(canvas.width / hor_size, canvas.height / ver_size);
-    draw(offset_x, offset_y, scale, lines);
+    draw_stuff(offset_x, offset_y, scale);
 
     canvas.onpointerdown = (e) => canvas.setPointerCapture(e.pointerId);
     canvas.onpointerup = (e) => canvas.releasePointerCapture(e.pointerId);
@@ -154,7 +173,7 @@ async function main() {
         offset_x += x * (old_scale - scale);
         offset_y += y * (old_scale - scale);
 
-        requestAnimationFrame(() => draw(offset_x, offset_y, scale, lines));
+        requestAnimationFrame(() => draw_stuff(offset_x, offset_y, scale));
         e.preventDefault();
     };
 
@@ -162,7 +181,7 @@ async function main() {
         if (e.buttons == 1) {
             offset_x += e.movementX;
             offset_y += e.movementY;
-            requestAnimationFrame(() => draw(offset_x, offset_y, scale, lines));
+            requestAnimationFrame(() => draw_stuff(offset_x, offset_y, scale));
         }
     }
 }

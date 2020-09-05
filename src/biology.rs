@@ -2,6 +2,10 @@ use crate::geometry::{
     Dir
 };
 
+use crate::neurology::{
+    State
+};
+
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub enum Color {
     Red,
@@ -12,7 +16,7 @@ pub enum Color {
 pub struct Ant {
     pub id : u8, // Every map contains just one anthill, so there should be up to 91 ants
     pub color : Color,
-    pub state : u16,
+    pub state : State,
     pub resting : u8,
     pub direction : Dir,
     pub has_food : bool,
@@ -25,7 +29,7 @@ impl Ant {
         let ant = Ant{
             id: next_id.clone(),
             color,
-            state: 0,
+            state: State(0),
             resting: 0,
             direction: Dir::E,
             has_food: false,
@@ -37,7 +41,7 @@ impl Ant {
         Ant{
             id: 0,
             color,
-            state: 0,
+            state: State(0),
             resting: 0,
             direction: Dir::E,
             has_food: false,

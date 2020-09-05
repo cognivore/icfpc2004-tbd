@@ -23,6 +23,7 @@ pub enum SenseDir {
     RightAhead,
 }
 
+#[derive(Debug)]
 pub enum LR {
     Left,
     Right,
