@@ -1,5 +1,5 @@
 use crate::geometry::{
-    Dir,
+    SenseDir,
     LR,
 };
 
@@ -14,7 +14,7 @@ pub struct State(pub u16);
 
 #[derive(Debug)]
 pub enum Instruction {
-    Sense(Dir, State, State, SenseCondition),
+    Sense(SenseDir, State, State, SenseCondition),
     Mark(Marker, State),
     Unmark(Marker, State),
     PickUp(State, State),

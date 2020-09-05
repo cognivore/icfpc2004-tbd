@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use crate::geometry::{
     LR,
     Dir,
+    SenseDir,
     Pos,
 };
 
@@ -82,6 +83,15 @@ pub fn adjs(p : Pos) -> HashMap<Dir, Option<Pos>> {
         adjs.insert(d,adj(p,d));
     }
     adjs
+}
+
+pub fn sensed_cell(p : Pos, d : Dir, sd : SenseDir) -> Option<Pos> {
+    match sd {
+        SenseDir::Here => Some(p),
+        SenseDir::Ahead => adj(p,d),
+        SenseDir::LeftAhead => adj(p,turn(LR::Left, d)),
+        SenseDir::RightAhead => adj(p,turn(LR::Right, d)),
+    }
 }
 
 // Biology functions
