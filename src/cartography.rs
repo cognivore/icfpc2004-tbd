@@ -75,7 +75,7 @@ pub struct World{
 }
 impl World {
     // for testing visualizer
-    pub fn fake_step(&mut self) {
+    pub fn fake_round(&mut self) {
         for t in self.data.values_mut() {
             match t {
                 MapToken::Clear(Contents { ant: Some(ant), .. }) => {

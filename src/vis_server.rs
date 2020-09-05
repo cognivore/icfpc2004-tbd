@@ -158,7 +158,7 @@ pub fn vis_server() {
                     let world = std::fs::read_to_string(&m.world).unwrap();
                     let mut world = World::from_map_string(&world);
                     for _ in 0..frame_no {
-                        world.fake_step();
+                        world.fake_round();
                     }
                     let frame = ReplayFrame::new(frame_no, &world);
 
