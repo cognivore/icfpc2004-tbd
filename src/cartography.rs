@@ -1,3 +1,6 @@
+// TODO: remove when it's implemented
+#![allow(unused_imports, unused_variables, unused_mut)]
+
 use nom::{
     IResult,
     branch::alt,
@@ -164,18 +167,27 @@ impl World {
 
     //Accessor functions
     pub fn rocky(self, p : Pos) -> bool {
-        todo!()
+        if let Some(Rock) = self.data.get(&p) {
+            return true;
+        }
+        return false;
     }
 
-    pub fn anthill_at(self, p : Pos) -> bool {
-        todo!()
+    pub fn anthill_at(self, p : Pos, c : Color) -> bool {
+        if let Some(Clear(cont)) = self.data.get(&p) {
+            return cont.anthill == Some(c);
+        }
+        return false;
     }
 
     pub fn some_ant_is_at(self, p : Pos) -> bool {
-        todo!()
+        if let Some(Clear(Contents { ant : Some(_), .. } )) = self.data.get(&p) {
+            return true;
+        }
+        return false;
     }
 
-    pub fn ant_at(self) -> Ant {
+    pub fn ant_at(self, p : Pos) -> Ant {
         todo!()
     }
 
@@ -225,6 +237,9 @@ impl Display for World {
         write!(f, "{}", buff)
     }
 }
+
+// Parse functions
+//------------------------------------------------------------------
 
 fn parse_world<'a>(x : usize, y : usize, w0 : World, input : &'a str)
 -> IResult<&'a str, World>
