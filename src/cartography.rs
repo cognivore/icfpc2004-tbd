@@ -1,6 +1,3 @@
-// TODO: remove when it's implemented
-#![allow(unused_imports, unused_variables, unused_mut)]
-
 use nom::{
     IResult,
     branch::alt,
@@ -192,28 +189,30 @@ fn parse_world<'a>(x : usize, y : usize, w0 : World, input : &'a str)
         Err(e) => Err(e),
         Ok((rest, map_tokens)) => {
             //println!("{:?}", map_tokens);
+            let mut ants_counter : u8 = 0;
             Ok((
                 rest,
                 fold_map_tokens_y(
                     w0,
-                    map_tokens
+                    map_tokens,
+                    &mut ants_counter
                 )
             ))
         }
     }
 }
 
-//TODO!!
 fn fold_map_tokens_y(
     a0 : World,
-    xss : Vec<Vec<MapToken>>
+    xss : Vec<Vec<MapToken>>,
+    ants_counter : &mut u8
 ) -> World
 {
     let mut a1 = a0.clone();
     let mut cy = 0;
     for xs in xss {
         cy += 1;
-        fold_map_tokens_x(&mut a1, xs, &cy);
+        fold_map_tokens_x(&mut a1, xs, &cy, ants_counter);
     }
     a1
 }
@@ -221,14 +220,26 @@ fn fold_map_tokens_y(
 fn fold_map_tokens_x(
     a0 : &mut World,
     xs : Vec<MapToken>,
-    y : &u8
+    y : &u8,
+    ants_counter : &mut u8
 ) -> World
 {
     let mut cx = 0;
     for x in xs {
         cx += 1;
         let p = Pos{ x: cx, y: y.clone() };
-        a0.data.insert(p, x);
+        if let Clear(xx) = x {
+            if let Contents{ant : Some(a), ..} = xx {
+                let ant_with_id = Contents { ant : Some( Ant { id : *ants_counter, ..a } ),
+                                             ..xx };
+                *ants_counter = *ants_counter + 1;
+                a0.data.insert(p, Clear(ant_with_id));
+            } else {
+                a0.data.insert(p, Clear(xx));
+            }
+        } else {
+            a0.data.insert(p, x);
+        }
     }
     a0.clone()
 }
@@ -382,7 +393,6 @@ fn pc(Contents{anthill, food: Food(fq), ..} : Contents) -> String {
 
 // ENTRY_POINT
 pub fn cartography_manual_testing_entry_point() {
-    use std::env;
     use std::fs;
     let w = fs::read_to_string("data/tiny.world")
         .expect("File not found or is broken");
