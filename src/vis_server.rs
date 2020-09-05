@@ -1,14 +1,15 @@
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 use crate::dev_server::{Request, ResponseBuilder, HandlerResult, serve_forever};
 use crate::cartography::World;
 use crate::geography::{Contents, MapToken::*};
 use crate::biology::Color::*;
-use crate::{neurology::parse_ant, geometry::Pos, number_theory::Random};
+use crate::{neurology::{Instruction, parse_ant}, geometry::Pos, number_theory::Random};
 
 // Keep type definitions in sync with vis/types.ts.
 
 #[derive(serde::Deserialize, serde::Serialize)]
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct Match {
     world: String,
     red: String,
@@ -114,6 +115,47 @@ impl ReplayFrame {
     }
 }
 
+struct CacheEntry {
+    ant_brains: [Vec<Instruction>; 2],
+
+    frame_no: usize,
+    rng: Random,
+    world: World,
+}
+
+impl CacheEntry {
+    fn new(m: &Match) -> Self {
+        let ant_brains = [
+            parse_ant(&std::fs::read_to_string(&m.red).unwrap()),
+            parse_ant(&std::fs::read_to_string(&m.black).unwrap()),
+        ];
+        let rng = Random::new(m.seed);
+
+        let world = std::fs::read_to_string(&m.world).unwrap();
+        let world = World::from_map_string(&world);
+        CacheEntry {
+            ant_brains,
+            frame_no: 0,
+            rng,
+            world,
+        }
+    }
+
+    fn get_frame(&mut self, m: &Match, frame_no: usize) -> ReplayFrame {
+        if self.frame_no > frame_no {
+            let world = std::fs::read_to_string(&m.world).unwrap();
+            self.world = World::from_map_string(&world);            
+            self.rng = Random::new(m.seed);
+            self.frame_no = 0;
+        }
+        for _ in self.frame_no..frame_no {
+            self.world.round(&self.ant_brains, &mut self.rng);
+        }
+        self.frame_no = frame_no;
+        ReplayFrame::new(frame_no, &self.world)
+    }
+}
+
 fn handle_static(req: &Request, resp: ResponseBuilder) -> HandlerResult {
     let path = req.path.strip_prefix('/').unwrap();
     let path = std::path::Path::new(path);
@@ -137,7 +179,11 @@ pub fn vis_server() {
     let listener = std::net::TcpListener::bind("127.0.0.1:8000").unwrap();
     eprintln!("serving at http://127.0.0.1:8000 ...");
 
+    let cache: HashMap<Match, CacheEntry> = HashMap::new();
+    let cache = Arc::new(Mutex::new(cache));
+
     serve_forever(listener, || {
+        let cache = Arc::clone(&cache);
         move |req, resp| {
             let (path, query) = match req.path.find('?') {
                 Some(idx) => (&req.path[..idx], &req.path[idx + 1..]),
@@ -172,18 +218,10 @@ pub fn vis_server() {
                     let m: Match = serde_json::from_str(&m).unwrap();
                     let frame_no = query["frame_no"].parse().unwrap();
 
-                    let ant_brains = [
-                        parse_ant(&std::fs::read_to_string(&m.red).unwrap()),
-                        parse_ant(&std::fs::read_to_string(&m.black).unwrap()),
-                    ];
-                    let mut rng = Random::new(m.seed);
-
-                    let world = std::fs::read_to_string(&m.world).unwrap();
-                    let mut world = World::from_map_string(&world);
-                    for _ in 0..frame_no {
-                        world.round(&ant_brains, &mut rng);
-                    }
-                    let frame = ReplayFrame::new(frame_no, &world);
+                    let frame = cache.lock().unwrap()
+                        .entry(m.clone())
+                        .or_insert_with(|| CacheEntry::new(&m))
+                        .get_frame(&m, frame_no);
 
                     resp.code("200 OK")
                         .body(serde_json::to_vec(&frame).unwrap())
