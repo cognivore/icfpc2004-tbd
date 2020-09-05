@@ -148,6 +148,9 @@ async function main() {
     let r = await fetch('/background?match=' + encodeURIComponent(JSON.stringify(match)));
     assert(r.ok);
     let bg = await r.json() as Background;
+
+    document.getElementById('red_program')!.innerText = bg.red_program;
+    document.getElementById('black_program')!.innerText = bg.black_program;
     
     async function fetch_frame(frame_no: number) {
         r = await fetch('/frame?match=' + encodeURIComponent(JSON.stringify(match)) + '&frame_no=' + frame_no);

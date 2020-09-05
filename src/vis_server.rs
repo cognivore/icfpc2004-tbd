@@ -21,6 +21,9 @@ struct Background {
     rocks: Vec<(u8, u8)>,
     red_anthill: Vec<(u8, u8)>,
     black_anthill: Vec<(u8, u8)>,
+
+    red_program: String,
+    black_program: String,
 }
 
 impl Background {
@@ -39,10 +42,16 @@ impl Background {
                 Clear(Contents { anthill: None, .. }) => {}
             }
         }
+
+        let red_program = std::fs::read_to_string(&m.red).unwrap();
+        let black_program = std::fs::read_to_string(&m.black).unwrap();
+
         Background {
             rocks,
             red_anthill,
             black_anthill,
+            red_program,
+            black_program,
         }
     }
 }

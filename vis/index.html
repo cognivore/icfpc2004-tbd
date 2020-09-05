@@ -2,6 +2,48 @@
 <link rel="stylesheet" href="style.css">
 <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
 
+<style>
+    #grid-wrapper {
+        display: grid;
+        height: 100%;
+        width: 100%;
+    }
+
+    #help-cell {
+        grid-column: 1;
+        grid-row: 1;
+    }
+    #frame-cell {
+        grid-column: 1;
+        grid-row: 2;
+    }
+    #canvas {
+        grid-column: 1;
+        grid-row: 3;
+    }
+    #red_program {
+        grid-column: 2;
+        grid-row: 1/4;
+        overflow-y: auto;
+    }
+    #black_program {
+        grid-column: 3;
+        grid-row: 1/4;
+        overflow-y: auto;
+    }
+
+    #canvas {
+        box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2);
+    }
+    #canvas:hover {
+        box-shadow: 0px 0px 4px rgba(0, 0, 0, 1);
+    }
+
+    #red_program, #black_program {
+        white-space: pre;
+    }    
+</style>
+
 <title>ants</title>
 
 <div id="error-message" style="background-color: red; position: fixed; display: none">
@@ -13,8 +55,12 @@
   };
 </script>
 
-<p><i>mouse drag and wheel; left, right</i></p>
-<p>Frame: <span id="frame_no"></span></p>
-<canvas id="canvas" width=500 height=400></canvas>
+<div id="grid-wrapper">
+    <p id="help-cell"><i>mouse drag and wheel; hover; left, right</i></p>
+    <p id="frame-cell">Frame: <span id="frame_no"></span></p>
+    <canvas id="canvas" width=500 height=400></canvas>
+    <div id="red_program"></div>
+    <div id="black_program"></div>
+</div>
 
 <script type="module" src="main.js"></script>
