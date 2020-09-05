@@ -70,6 +70,21 @@ pub struct World{
     pub data : HashMap<Pos, MapToken>,
 }
 impl World {
+    // for testing visualizer
+    pub fn fake_step(&mut self) {
+        for t in self.data.values_mut() {
+            match t {
+                MapToken::Clear(Contents { ant: Some(ant), .. }) => {
+                    match ant.color {
+                        Color::Red => ant.direction = ant.direction.cw(1),
+                        Color::Black => ant.direction = ant.direction.cw(5),
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+
     pub fn new() -> World {
         World{ x: 0, y: 0, data: HashMap::new() }
     }

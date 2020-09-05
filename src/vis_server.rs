@@ -3,6 +3,7 @@ use crate::dev_server::{Request, ResponseBuilder, HandlerResult, serve_forever};
 use crate::cartography::World;
 use crate::geography::{Contents, MapToken::*};
 use crate::biology::Color::*;
+use crate::geometry::Pos;
 
 // Keep type definitions in sync with vis/types.ts.
 
@@ -22,21 +23,79 @@ struct Background {
     black_anthill: Vec<(u8, u8)>,
 }
 
+impl Background {
+    fn new(m: &Match) -> Self {
+        let world = std::fs::read_to_string(&m.world).unwrap();
+        let world = World::from_map_string(&world);
+
+        let mut rocks = Vec::new();
+        let mut red_anthill = Vec::new();
+        let mut black_anthill = Vec::new();
+        for (&Pos { x, y }, token) in &world.data {
+            match token {
+                Rock => rocks.push((x, y)),
+                Clear(Contents { anthill: Some(Red), .. }) => red_anthill.push((x, y)),
+                Clear(Contents { anthill: Some(Black), .. }) => black_anthill.push((x, y)),
+                Clear(Contents { anthill: None, .. }) => {}
+            }
+        }
+        Background {
+            rocks,
+            red_anthill,
+            black_anthill,
+        }
+    }
+}
+
 // Things that change
 #[derive(serde::Serialize)]
 struct ReplayFrame {
     frame_no: usize,
-    food: Vec<(i32, i32, i32)>,  // (x, y, amount)
+    food: Vec<(u8, u8, u16)>,  // (x, y, amount)
     ants: Vec<Ant>,
 }
 
 #[derive(serde::Serialize)]
 struct Ant {
     color: &'static str,  // "red" or "black"
-    x: i32,
-    y: i32,
+    x: u8,
+    y: u8,
     dir: i32,  // E = 0 and then clockwise
     has_food: bool,
+}
+
+impl ReplayFrame {
+    fn new(frame_no: usize, w: &World) -> Self {
+        let mut food = Vec::new();
+        let mut ants = Vec::new();
+        for (&Pos { x, y }, token) in &w.data {
+            match token {
+                Rock => {}
+                Clear(Contents { food: f, ant, .. }) => {
+                    if f.0 > 0 {
+                        food.push((x, y, f.0));
+                    }
+                    if let Some(ant) = ant {
+                        ants.push(Ant {
+                            color: match ant.color {
+                                Red => "red",
+                                Black => "black",
+                            },
+                            x,
+                            y,
+                            dir: ant.direction as i32,
+                            has_food: ant.has_food,
+                        });
+                    }
+                }
+            }
+        }
+        ReplayFrame {
+            frame_no,
+            food,
+            ants,
+        }
+    }
 }
 
 fn handle_static(req: &Request, resp: ResponseBuilder) -> HandlerResult {
@@ -87,54 +146,22 @@ pub fn vis_server() {
                 "/background" => {
                     let m = &query["match"];
                     let m: Match = serde_json::from_str(&m).unwrap();
-
-                    let world = std::fs::read_to_string(m.world).unwrap();
-                    let world = World::from_map_string(&world);
-
-                    let mut rocks = Vec::new();
-                    let mut red_anthill = Vec::new();
-                    let mut black_anthill = Vec::new();
-                    for (pos, token) in &world.data {
-                        match token {
-                            Rock => rocks.push((pos.x, pos.y)),
-                            Clear(Contents { anthill: Some(Red), .. }) => red_anthill.push((pos.x, pos.y)),
-                            Clear(Contents { anthill: Some(Black), .. }) => black_anthill.push((pos.x, pos.y)),
-                            Clear(Contents { anthill: None, .. }) => {}
-                        }
-                    }
-                    let bg = Background {
-                        rocks,
-                        red_anthill,
-                        black_anthill,
-                    };
-
+                    let bg = Background::new(&m);
                     resp.code("200 OK")
                         .body(serde_json::to_vec(&bg).unwrap())
                 }
                 "/frame" => {
                     let m = &query["match"];
-                    let _m: Match = serde_json::from_str(&m).unwrap();
+                    let m: Match = serde_json::from_str(&m).unwrap();
                     let frame_no = query["frame_no"].parse().unwrap();
 
-                    // TODO: actual stuff
-                    let frame = ReplayFrame {
-                        frame_no,
-                        food: vec![(3, 3, 9), (4, 4, 5)],
-                        ants: vec![
-                            Ant {
-                                color: "red",
-                                x: 1, y: 1,
-                                dir: (1 + frame_no as i32) % 6,
-                                has_food: false,
-                            },
-                            Ant {
-                                color: "black",
-                                x: 1, y: 2,
-                                dir: (2 - frame_no as i32).rem_euclid(6),
-                                has_food: true,
-                            },
-                        ],
-                    };
+                    let world = std::fs::read_to_string(&m.world).unwrap();
+                    let mut world = World::from_map_string(&world);
+                    for _ in 0..frame_no {
+                        world.fake_step();
+                    }
+                    let frame = ReplayFrame::new(frame_no, &world);
+
                     resp.code("200 OK")
                         .body(serde_json::to_vec(&frame).unwrap())
                 }
