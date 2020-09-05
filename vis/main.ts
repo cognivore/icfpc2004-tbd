@@ -163,6 +163,7 @@ async function main() {
     document.getElementById('frame_no')!.innerText = '' + frame_no;
 
     async function change_frame(new_frame_no: number) {
+        document.getElementById('frame_no')!.innerText = '' + frame_no + '...';
         frame_no = new_frame_no;
         let f = await fetch_frame(new_frame_no);
         if (f.frame_no == frame_no) {
