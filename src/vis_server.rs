@@ -3,7 +3,7 @@ use crate::dev_server::{Request, ResponseBuilder, HandlerResult, serve_forever};
 use crate::cartography::World;
 use crate::geography::{Contents, MapToken::*};
 use crate::biology::Color::*;
-use crate::geometry::Pos;
+use crate::{neurology::parse_ant, geometry::Pos, number_theory::Random};
 
 // Keep type definitions in sync with vis/types.ts.
 
@@ -170,10 +170,16 @@ pub fn vis_server() {
                     let m: Match = serde_json::from_str(&m).unwrap();
                     let frame_no = query["frame_no"].parse().unwrap();
 
+                    let ant_brains = [
+                        parse_ant(&std::fs::read_to_string(&m.red).unwrap()),
+                        parse_ant(&std::fs::read_to_string(&m.black).unwrap()),
+                    ];
+                    let mut rng = Random::new(42);  // TODO: get seed from Match
+
                     let world = std::fs::read_to_string(&m.world).unwrap();
                     let mut world = World::from_map_string(&world);
                     for _ in 0..frame_no {
-                        world.fake_round();
+                        world.round(&ant_brains, &mut rng);
                     }
                     let frame = ReplayFrame::new(frame_no, &world);
 

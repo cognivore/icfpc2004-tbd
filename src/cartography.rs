@@ -92,21 +92,6 @@ pub struct World{
     pub data : HashMap<Pos, MapToken>,
 }
 impl World {
-    // for testing visualizer
-    pub fn fake_round(&mut self) {
-        for t in self.data.values_mut() {
-            match t {
-                MapToken::Clear(Contents { ant: Some(ant), .. }) => {
-                    match ant.color {
-                        Color::Red => ant.direction = ant.direction.cw(1),
-                        Color::Black => ant.direction = ant.direction.cw(5),
-                    }
-                }
-                _ => {}
-            }
-        }
-    }
-
     pub fn round(&mut self, ant_brains : &[Vec<Instruction>; 2], rng : &mut Random) {
         // there are two anthills, 91 ants max each
         for id in 0..182 {
