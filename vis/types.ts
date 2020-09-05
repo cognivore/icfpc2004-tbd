@@ -5,6 +5,7 @@ export interface Match {
     world: string,
     red: string,
     black: string,
+    seed: number,
 }
 
 export interface Background {

@@ -13,6 +13,7 @@ struct Match {
     world: String,
     red: String,
     black: String,
+    seed: u32,
 }
 
 // Things that don't change
@@ -148,7 +149,8 @@ pub fn vis_server() {
                     let m = Match {
                         world: "data/tiny.world".to_string(),
                         red: "data/sample.ant".to_string(),
-                        black: "data/sample.ant".to_string(),
+                        black: "data/example_from_spec.ant".to_string(),
+                        seed: 42,
                     };
                     let s = serde_json::to_string(&m).unwrap();
                     resp.code("200 OK")
@@ -174,7 +176,7 @@ pub fn vis_server() {
                         parse_ant(&std::fs::read_to_string(&m.red).unwrap()),
                         parse_ant(&std::fs::read_to_string(&m.black).unwrap()),
                     ];
-                    let mut rng = Random::new(42);  // TODO: get seed from Match
+                    let mut rng = Random::new(m.seed);
 
                     let world = std::fs::read_to_string(&m.world).unwrap();
                     let mut world = World::from_map_string(&world);
