@@ -230,11 +230,24 @@ impl World {
     }
 
     pub fn ant_is_alive(self, id : u8) -> bool {
-        todo!()
+        if let Some(_) = self.find_ant(id) {
+            return true;
+        }
+        return false;
     }
 
-    pub fn find_ant(self, id : u8) -> Pos {
-        todo!()
+    pub fn find_ant(self, id : u8) -> Option<Pos> {
+        for (k,v) in self.data.iter() {
+            match v {
+                Clear(Contents { ant: Some(ant), .. }) => {
+                    if ant.id == id {
+                        return Some(*k);
+                    }
+                }
+                _ => { continue; }
+            }
+        }
+        return None;
     }
 
 }
