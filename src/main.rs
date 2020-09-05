@@ -1,3 +1,5 @@
+#![allow(clippy::new_without_default)]  // number of times this was useful: http://www.quickmeme.com/Bill-Clinton-Zero
+
 pub mod example_module;
 pub mod dev_server;
 pub mod prelude;
