@@ -335,7 +335,7 @@ fn food(input : &str)
             Clear(Contents{
                 ant: None,
                 anthill: None,
-                food: Food(u8::from_str(ds).unwrap()),
+                food: Food(ds.parse().unwrap()),
                 markers: Markers::empty(),
             })
         ))

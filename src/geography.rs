@@ -46,4 +46,4 @@ impl Markers {
 }
 
 #[derive(Clone, Debug)]
-pub struct Food(pub u8);
+pub struct Food(pub u16);
