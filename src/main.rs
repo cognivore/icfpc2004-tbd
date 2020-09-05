@@ -6,6 +6,8 @@ pub mod geometry;
 pub mod biology;
 pub mod geography;
 pub mod cartography;
+pub mod phenomenology;
+pub mod neurology;
 pub mod vis_server;
 
 // produced by build.rs
