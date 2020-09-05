@@ -35,11 +35,17 @@ use crate::geometry::{
     Pos,
 };
 
+use crate::prelude::{
+    adj,
+    simple_enum_iter,
+};
+
 pub enum LookupError {
     HexOutOfBounds,
     NotFound,
 }
 
+#[derive(Clone)]
 pub struct World(pub HashMap<Pos, MapToken>);
 impl World {
     pub fn new(x : u8, y : u8) -> World {
@@ -76,16 +82,28 @@ impl World {
         }
     }
 
-    pub fn adj_feature(Pos{x, y} : Pos, d : Dir)
+    pub fn adj_feature(self, p : Pos, d : Dir)
         -> Result<MapToken, LookupError>
     {
-        todo!()
+        if let Some(a) = adj(p,d) {
+            if let Some(token) = self.0.get(&a) {
+                Ok(token.clone())
+            } else {
+                Err(LookupError::NotFound)
+            }
+        } else {
+            Err(LookupError::HexOutOfBounds)
+        }
     }
 
-    pub fn adj_features(Pos{x, y} : Pos)
+    pub fn adj_features(self, p : Pos)
         -> HashMap<Dir, Result<MapToken, LookupError>>
     {
-        todo!()
+        let mut res = HashMap::new();
+        for d in simple_enum_iter::<Dir>(6) {
+            res.insert(d, self.clone().adj_feature(p, d));
+        }
+        res
     }
 
 }
