@@ -12,7 +12,7 @@ use crate::phenomenology::{
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct State(pub u16);
 
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Instruction {
     Sense(SenseDir, State, State, SenseCondition),
     Mark(Marker, State),

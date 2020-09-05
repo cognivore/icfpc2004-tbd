@@ -6,7 +6,7 @@ use crate::neurology::{
     State
 };
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum Color {
     Red,
     Black,
@@ -14,7 +14,7 @@ pub enum Color {
 
 #[derive(Clone, Debug)]
 pub struct Ant {
-    pub id : u8, // Every map contains just one anthill, so there should be up to 91 ants
+    pub id : u8, // Every map contains just two anthills, so there should be up to 182 ants
     pub color : Color,
     pub state : State,
     pub resting : u8,

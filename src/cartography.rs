@@ -31,6 +31,14 @@ use std::str::FromStr;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
+use crate::biology::{
+    Color,
+    Ant,
+    other_color,
+};
+
+use crate::biology::Color::*;
+
 use crate::geography::{
     MapToken,
     Contents,
@@ -42,18 +50,22 @@ use crate::geography::MapToken::{
     Clear
 };
 
-use crate::biology::{
-    Color,
-    Ant,
-    other_color,
-};
-
-use crate::biology::Color::*;
-
 use crate::geometry::{
     Dir,
     Pos,
     adj,
+    sensed_cell,
+    turn,
+};
+
+use crate::neurology::{
+    Instruction,
+};
+
+use crate::neurology::Instruction::*;
+
+use crate::number_theory::{
+    Random,
 };
 
 use crate::phenomenology::{
@@ -95,6 +107,77 @@ impl World {
         }
     }
 
+    pub fn round(&mut self, ant_brains : &[Vec<Instruction>; 2], rng : &mut Random) {
+        // there are two anthills, 91 ants max each
+        for id in 0..182 {
+            self.step(id, ant_brains, rng);
+        }
+    }
+
+    pub fn step(&mut self, id : u8, ant_brains : &[Vec<Instruction>; 2], rng : &mut Random) {
+        if let Some(pos) = self.clone().find_ant(id) {
+            if let Some(ant) = self.clone().ant_at(pos) {
+                if ant.resting > 0 {
+                    self.set_ant_at(pos, Ant { resting : ant.resting-1, ..ant })
+                } else {
+                    //println!("{:?}", ant_brains[ant.color.clone() as usize][ant.state.0 as usize]);
+                    match ant_brains[ant.color.clone() as usize][ant.state.0 as usize].clone() {
+                        Sense(sdir, s1, s2, cond) => {
+                            if let Some(sensed_pos) = sensed_cell(pos, ant.direction, sdir) {
+                                let state = if self.clone().cell_matches(sensed_pos, cond, ant.color) { s1 } else { s2 };
+                                self.set_ant_at(pos, Ant { state, ..ant });
+                            }
+                        },
+                        Mark(i, state) => {
+                            self.set_marker_at(pos, ant.color, i);
+                            self.set_ant_at(pos, Ant { state, ..ant });
+                        },
+                        Unmark(i, state) => {
+                            self.clear_marker_at(pos, ant.color, i);
+                            self.set_ant_at(pos, Ant { state, ..ant });
+                        },
+                        PickUp(s1, s2) => {
+                            let food_amount = self.clone().food_at(pos).0;
+                            if ant.has_food || food_amount == 0 {
+                                self.set_ant_at(pos, Ant { state : s2, ..ant });
+                            } else {
+                                self.set_food_at(pos, Food(food_amount-1));
+                                self.set_ant_at(pos, Ant { state : s1, has_food : true, ..ant });
+                            }
+                        },
+                        Drop(state) => {
+                            if ant.has_food {
+                                let food_amount = self.clone().food_at(pos).0;
+                                self.set_food_at(pos, Food(food_amount + 1));
+                            }
+                            self.set_ant_at(pos, Ant { state, has_food : false, ..ant });
+                        },
+                        Turn(lr, state) => {
+                            self.set_ant_at(pos, Ant { state, direction : turn(lr, ant.direction), ..ant });
+                        },
+                        Move(s1,s2) => {
+                            if let Some(new_pos) = adj(pos, ant.direction) {
+                                if self.clone().rocky(new_pos) || self.clone().some_ant_is_at(new_pos) {
+                                    self.set_ant_at(pos, Ant { state : s2, ..ant });
+                                } else {
+                                    self.clear_ant_at(pos);
+                                    self.set_ant_at(new_pos, Ant { state : s1, resting : 14, ..ant });
+                                    self.check_for_surrounded_ants(new_pos);
+                                }
+                            } else {
+                                self.set_ant_at(pos, Ant { state : s2, ..ant });
+                            }
+                        },
+                        Flip(n, s1, s2) => {
+                            let state = if rng.next(n.into()) == 0 { s1 } else { s2 };
+                            self.set_ant_at(pos, Ant { state, ..ant });
+                        },
+                    }
+                }
+            }
+        }
+    }
+
     pub fn cell_matches(self, p : Pos, cond : SenseCondition, c : Color) -> bool {
         match cond {
             Friend => {
@@ -123,7 +206,6 @@ impl World {
             FoeMarker => { return self.check_any_marker_at(p, other_color(c)) },
             Home => { return self.anthill_at(p,c) },
             FoeHome => { return self.anthill_at(p,other_color(c)) },
-            _ => unreachable!()
         }
         false
     }
@@ -208,6 +290,38 @@ impl World {
         res
     }
 
+    pub fn adj_ants(self, p : Pos, c : Color) -> u8 {
+        let mut count = 0;
+        let adj_cells = self.adj_features(p);
+        for a in adj_cells.values() {
+            if let Ok(Clear(Contents { ant : Some(ant), .. } )) = a {
+                if ant.color == c {
+                    count = count + 1;
+                }
+            }
+        }
+        count
+    }
+
+    pub fn check_for_surrounded_ant_at(&mut self, p : Pos) {
+        if let Some(ant) = self.clone().ant_at(p) {
+            if self.clone().adj_ants(p, other_color(ant.color)) >= 5 {
+                self.clear_ant_at(p);
+                let food_amount = self.clone().food_at(p).0;
+                self.set_food_at(p, Food(food_amount + 3 + if ant.has_food { 1 } else { 0 } ));
+            }
+        }
+    }
+
+    pub fn check_for_surrounded_ants(&mut self, p : Pos) {
+        self.check_for_surrounded_ant_at(p);
+        for d in simple_enum_iter::<Dir>(6) {
+            if let Some(a) = adj(p,d) {
+                self.check_for_surrounded_ant_at(a);
+            }
+        }
+    }
+
     //Accessor functions
     pub fn rocky(self, p : Pos) -> bool {
         if let Some(MapToken::Rock) = self.data.get(&p) {
@@ -264,12 +378,7 @@ impl World {
 
     pub fn set_ant_at(&mut self, p : Pos, a : Ant) {
         if let Some(Clear(t)) = self.data.get_mut(&p) {
-            match t {
-                Contents { ant: None, .. } => {
-                    t.ant = Some(a);
-                }
-                _ => {}
-            }
+            t.ant = Some(a);
         }
     }
 
@@ -319,6 +428,20 @@ impl World {
                 Clear(Contents { ant: Some(ant), .. }) => {
                     if ant.id == id {
                         return Some(*k);
+                    }
+                }
+                _ => { continue; }
+            }
+        }
+        return None;
+    }
+
+    pub fn ant_by_id(self, id : u8) -> Option<Ant> {
+        for (k,v) in self.data.iter() {
+            match v {
+                Clear(Contents { ant: Some(ant), .. }) => {
+                    if ant.id == id {
+                        return Some(ant.clone());
                     }
                 }
                 _ => { continue; }
