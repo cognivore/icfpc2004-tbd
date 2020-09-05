@@ -91,6 +91,12 @@ function apply_transform(tr: Transform, col: number, row: number): {x: number, y
     return {x, y};
 }
 
+function unapply_transform(tr: Transform, x: number, y: number): {row: number, col: number} {
+    let row = Math.round((y - tr.offset_y) / (tr.scale * 0.75) - 0.666);
+    let col = Math.round(((x - tr.offset_x) / (0.5 * H_SCALE * tr.scale) - 1 - row % 2) / 2);
+    return { row, col };
+}
+
 function draw_background(tr: Transform, bg: Background) {
     ctx.fillStyle = 'black';
     bg.rocks.forEach(([j, i]) => {
@@ -196,6 +202,14 @@ async function main() {
                 break;
         }
     };
+
+    canvas.onmousemove = (e) => {
+        let r = canvas.getBoundingClientRect();
+        let x = e.clientX - r.left;
+        let y = e.clientY - r.top;
+        let { row, col } = unapply_transform(tr, x, y);
+        canvas.title = '(' + col + ', ' + row + ')';
+    }
 
     canvas.onpointerdown = (e) => canvas.setPointerCapture(e.pointerId);
     canvas.onpointerup = (e) => canvas.releasePointerCapture(e.pointerId);
