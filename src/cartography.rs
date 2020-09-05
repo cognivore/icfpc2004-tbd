@@ -38,11 +38,14 @@ use crate::geography::{
     Markers,
 };
 
-use crate::geography::MapToken::*;
+use crate::geography::MapToken::{
+    Clear
+};
 
 use crate::biology::{
     Color,
     Ant,
+    other_color,
 };
 
 use crate::biology::Color::*;
@@ -55,7 +58,10 @@ use crate::geometry::{
 
 use crate::phenomenology::{
     Marker,
+    SenseCondition,
 };
+
+use crate::phenomenology::SenseCondition::*;
 
 use crate::prelude::{
     simple_enum_iter,
@@ -89,6 +95,39 @@ impl World {
         }
     }
 
+    pub fn cell_matches(self, p : Pos, cond : SenseCondition, c : Color) -> bool {
+        match cond {
+            Friend => {
+                if let Some(ant) = self.ant_at(p) {
+                    return ant.color == c
+                }
+            },
+            Foe => {
+                if let Some(ant) = self.ant_at(p) {
+                    return ant.color != c
+                }
+            },
+            FriendWithFood => {
+                if let Some(ant) = self.ant_at(p) {
+                    return ant.color == c && ant.has_food
+                }
+            },
+            FoeWithFood => {
+                if let Some(ant) = self.ant_at(p) {
+                    return ant.color != c && ant.has_food
+                }
+            },
+            SenseCondition::Food => { return self.food_at(p).0 > 0 },
+            Rock => { return self.rocky(p) },
+            SenseCondition::Marker(i) => { return self.check_marker_at(p, c, i) },
+            FoeMarker => { return self.check_any_marker_at(p, other_color(c)) },
+            Home => { return self.anthill_at(p,c) },
+            FoeHome => { return self.anthill_at(p,other_color(c)) },
+            _ => unreachable!()
+        }
+        false
+    }
+
     pub fn new() -> World {
         World{ x: 0, y: 0, data: HashMap::new() }
     }
@@ -97,12 +136,12 @@ impl World {
         let mut h : HashMap<Pos, MapToken> =
             HashMap::new();
         for cx in 0..x {
-            h.insert(Pos{ x: cx, y: 0     }, Rock);
-            h.insert(Pos{ x: cx, y: y - 1 }, Rock);
+            h.insert(Pos{ x: cx, y: 0     }, MapToken::Rock);
+            h.insert(Pos{ x: cx, y: y - 1 }, MapToken::Rock);
         }
         for cy in 1..y-1 {
-            h.insert(Pos{ x: 0    , y: cy}, Rock);
-            h.insert(Pos{ x: x - 1, y: cy}, Rock);
+            h.insert(Pos{ x: 0    , y: cy}, MapToken::Rock);
+            h.insert(Pos{ x: x - 1, y: cy}, MapToken::Rock);
         }
         World{ x, y, data: h }
     }
@@ -171,7 +210,7 @@ impl World {
 
     //Accessor functions
     pub fn rocky(self, p : Pos) -> bool {
-        if let Some(Rock) = self.data.get(&p) {
+        if let Some(MapToken::Rock) = self.data.get(&p) {
             return true;
         }
         return false;
@@ -512,7 +551,7 @@ fn ws(input : &str) -> IResult<&str, char> {
 fn p(x : Option<&MapToken>) -> String {
     match x {
         None => "x".to_string(),
-        Some(Rock) => "#".to_string(),
+        Some(MapToken::Rock) => "#".to_string(),
         Some(Clear(contents)) => pc(contents.clone()),
     }
 }
