@@ -187,16 +187,46 @@ impl World {
         return false;
     }
 
-    pub fn ant_at(self, p : Pos) -> Ant {
-        todo!()
+    pub fn ant_at(self, p : Pos) -> Option<Ant> {
+        if let Some(Clear(cont)) = self.data.get(&p) {
+            return cont.ant.clone();
+        }
+        return None;
+    }
+
+    pub fn food_at(self, p : Pos) -> Food {
+        if let Some(Clear(cont)) = self.data.get(&p) {
+            return cont.food;
+        }
+        return Food(0);
     }
 
     pub fn set_ant_at(&mut self, p : Pos, a : Ant) {
-        todo!()
+        if let Some(Clear(t)) = self.data.get_mut(&p) {
+            match t {
+                Contents { ant: None, .. } => {
+                    t.ant = Some(a);
+                }
+                _ => {}
+            }
+        }
     }
 
     pub fn clear_ant_at(&mut self, p : Pos) {
-        todo!()
+        if let Some(Clear(t)) = self.data.get_mut(&p) {
+            match t {
+                Contents { ant: Some(_), .. } => {
+                    t.ant = None;
+                }
+                _ => {}
+            }
+        }
+    }
+
+    pub fn set_food_at(&mut self, p : Pos, f : Food) {
+        if let Some(Clear(t)) = self.data.get_mut(&p) {
+            t.food = f;
+        }
     }
 
     pub fn ant_is_alive(self, id : u8) -> bool {
@@ -204,14 +234,6 @@ impl World {
     }
 
     pub fn find_ant(self, id : u8) -> Pos {
-        todo!()
-    }
-
-    pub fn food_at(self, p : Pos) -> Food {
-        todo!()
-    }
-
-    pub fn set_food_at(&mut self, f : Food) {
         todo!()
     }
 
