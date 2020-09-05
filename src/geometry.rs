@@ -18,7 +18,7 @@ pub enum Dir {
     NE,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum SenseDir {
     Here,
     Ahead,
@@ -26,7 +26,7 @@ pub enum SenseDir {
     RightAhead,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum LR {
     Left,
     Right,

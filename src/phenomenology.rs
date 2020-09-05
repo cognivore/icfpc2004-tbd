@@ -1,9 +1,4 @@
-// TODO: remove when it's implemented
-#![allow(unused_imports, unused_variables, unused_mut)]
-
-use crate::geography::Markers;
-
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum SenseCondition {
     Friend,
     Foe,
@@ -17,5 +12,12 @@ pub enum SenseCondition {
     FoeHome,
 }
 
-#[derive(Copy, Clone, Debug)]
-pub struct Marker(pub u8);
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct Marker(u8);
+
+impl Marker {
+    pub fn new(i: u8) -> Self {
+        assert!(i < 6);
+        Marker(i)
+    }
+}
