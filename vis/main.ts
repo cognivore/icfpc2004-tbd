@@ -119,9 +119,25 @@ async function main() {
     assert(r.ok);
     let bg = await r.json() as Background;
     
-    r = await fetch('/frame?match=' + encodeURIComponent(JSON.stringify(match)) + '&frame_no=0');
-    assert(r.ok);
-    let frame = await r.json() as ReplayFrame;
+    async function fetch_frame(frame_no: number) {
+        r = await fetch('/frame?match=' + encodeURIComponent(JSON.stringify(match)) + '&frame_no=' + frame_no);
+        assert(r.ok);
+        return await r.json() as ReplayFrame;
+    }
+
+    let frame_no = 0;
+    let frame = await fetch_frame(frame_no);
+    document.getElementById('frame_no')!.innerText = '' + frame_no;
+
+    async function change_frame(new_frame_no: number) {
+        frame_no = new_frame_no;
+        let f = await fetch_frame(new_frame_no);
+        if (f.frame_no == frame_no) {
+            document.getElementById('frame_no')!.innerText = '' + frame_no;
+            frame = f;
+            draw_stuff(offset_x, offset_y, scale);
+        }
+    }
 
     let draw_stuff = (offset_x: number, offset_y: number, scale: number) => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -142,6 +158,19 @@ async function main() {
     let offset_y = 0;
     let scale = Math.min(canvas.width / hor_size, canvas.height / ver_size);
     draw_stuff(offset_x, offset_y, scale);
+
+    document.onkeydown = e => {
+        switch (e.code) {
+            case 'ArrowRight':
+                change_frame(frame_no + 1);
+                break;
+            case 'ArrowLeft':
+                if (frame_no > 0) {
+                    change_frame(frame_no - 1);
+                }
+                break;
+        }
+    };
 
     canvas.onpointerdown = (e) => canvas.setPointerCapture(e.pointerId);
     canvas.onpointerup = (e) => canvas.releasePointerCapture(e.pointerId);

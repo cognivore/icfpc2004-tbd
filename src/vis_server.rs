@@ -25,6 +25,7 @@ struct Background {
 // Things that change
 #[derive(serde::Serialize)]
 struct ReplayFrame {
+    frame_no: usize,
     food: Vec<(i32, i32, i32)>,  // (x, y, amount)
     ants: Vec<Ant>,
 }
@@ -68,7 +69,6 @@ pub fn vis_server() {
                 None => (req.path, "")
             };
             let query: HashMap<_, _> = url::form_urlencoded::parse(query.as_bytes()).collect();
-            // dbg!(query);
             match path {
                 "/" => {
                     let m = Match {
@@ -114,14 +114,25 @@ pub fn vis_server() {
                 "/frame" => {
                     let m = &query["match"];
                     let _m: Match = serde_json::from_str(&m).unwrap();
-                    let _frame_no: i32 = query["frame_no"].parse().unwrap();
+                    let frame_no = query["frame_no"].parse().unwrap();
 
                     // TODO: actual stuff
                     let frame = ReplayFrame {
+                        frame_no,
                         food: vec![(3, 3, 9), (4, 4, 5)],
                         ants: vec![
-                            Ant { color: "red", x: 1, y: 1, dir: 1, has_food: false },
-                            Ant { color: "black", x: 1, y: 2, dir: 2, has_food: true },
+                            Ant {
+                                color: "red",
+                                x: 1, y: 1,
+                                dir: (1 + frame_no as i32) % 6,
+                                has_food: false,
+                            },
+                            Ant {
+                                color: "black",
+                                x: 1, y: 2,
+                                dir: (2 - frame_no as i32).rem_euclid(6),
+                                has_food: true,
+                            },
                         ],
                     };
                     resp.code("200 OK")

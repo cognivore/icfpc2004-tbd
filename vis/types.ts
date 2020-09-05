@@ -14,6 +14,7 @@ export interface Background {
 }
 
 export interface ReplayFrame {
+    frame_no: number,
     food: [number, number, number][],
     ants: Ant[],
 }
