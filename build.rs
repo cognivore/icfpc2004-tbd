@@ -7,6 +7,9 @@ fn traverse_dir(path: &Path, qs: &mut String, cb: &mut impl FnMut(&str, &str)) {
         let p = p.unwrap();
         let is_dir = p.metadata().unwrap().is_dir();
         let p = p.path();
+        if p.extension().unwrap() != ("rs") {
+            continue;
+        }
         let module_name = p.file_stem().unwrap().to_str().unwrap();
         let old_len = qs.len();
         qs.push_str(module_name);
