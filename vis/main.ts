@@ -208,7 +208,17 @@ async function main() {
         let x = e.clientX - r.left;
         let y = e.clientY - r.top;
         let { row, col } = unapply_transform(tr, x, y);
-        canvas.title = '(' + col + ', ' + row + ')';
+        let tooltip = '(' + col + ', ' + row + ')';
+        frame.ants.forEach((ant) => {
+            if (ant.x == col && ant.y == row) {
+                tooltip += '\n' +
+                    ant.color + ' ant\n' +
+                    '    id: ' + ant.id + '\n' +
+                    '    state: ' + ant.state + '\n' +
+                    '    resting: ' + ant.resting;
+            }
+        });
+        canvas.title = tooltip;
     }
 
     canvas.onpointerdown = (e) => canvas.setPointerCapture(e.pointerId);

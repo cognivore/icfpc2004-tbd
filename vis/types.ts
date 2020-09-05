@@ -20,9 +20,12 @@ export interface ReplayFrame {
 }
 
 export interface Ant {
+    id: number,
     color: 'red' | 'black',
     x: number,
     y: number,
     dir: number,
     has_food: boolean,
+    state: number,
+    resting: number,
 }

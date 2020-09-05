@@ -57,11 +57,14 @@ struct ReplayFrame {
 
 #[derive(serde::Serialize)]
 struct Ant {
+    id: u8,
     color: &'static str,  // "red" or "black"
     x: u8,
     y: u8,
     dir: i32,  // E = 0 and then clockwise
     has_food: bool,
+    state: u16,
+    resting: u8,
 }
 
 impl ReplayFrame {
@@ -77,6 +80,7 @@ impl ReplayFrame {
                     }
                     if let Some(ant) = ant {
                         ants.push(Ant {
+                            id: ant.id,
                             color: match ant.color {
                                 Red => "red",
                                 Black => "black",
@@ -85,6 +89,8 @@ impl ReplayFrame {
                             y,
                             dir: ant.direction as i32,
                             has_food: ant.has_food,
+                            state: ant.state.0,
+                            resting: ant.resting,
                         });
                     }
                 }
