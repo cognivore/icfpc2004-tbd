@@ -1,21 +1,5 @@
 use num_traits::FromPrimitive;
 
-use std::collections::HashMap;
-
-use crate::geometry::{
-    LR,
-    Dir,
-    SenseDir,
-    Pos,
-};
-
-use crate::biology::{
-    Color,
-};
-
-use crate::utils::{
-    even,
-};
 
 // TODO: Abstract away
 // ...
@@ -25,82 +9,19 @@ pub fn simple_enum_iter<T: FromPrimitive>(n : i8) -> impl Iterator<Item=T> {
     (0..n).map(|x| FromPrimitive::from_i8(x).unwrap())
 }
 
-pub fn turn(lr : LR, dir : Dir) -> Dir {
-    match lr {
-        LR::Left => dir.cw(5),
-        LR::Right => dir.cw(1),
-    }
-}
-
-pub fn adj_unsafe(p : Pos, d : Dir) -> Pos {
-    if let Some(a) = adj(p,d) {
-        return a
-    } else {
-        panic!("No adjacent cell in that direction!");
-    }
-
-}
-
-pub fn adj(Pos{x,y} : Pos, d : Dir) -> Option<Pos> {
-    match d {
-        Dir::E  => Pos{x: x+1, y: y}.inbound(),
-        Dir::SE => if even(y) {Pos{x:x,y:y+1}.inbound()} else {Pos{x:x+1,y:y+1}.inbound()},
-        Dir::SW => if even(y) {
-            if x == 0 { None } else { Pos{x:x-1,y:y+1}.inbound() }
-        } else { Pos{x:x,y:y+1}.inbound() },
-        Dir::W  => if x == 0 { None } else { Pos{x:x-1,y:y}.inbound() },
-        Dir::NW => if y == 0 { None } else {
-            if even(y) {
-                if x == 0 { None } else { Pos{x:x-1,y:y-1}.inbound() }
-            } else { Pos{x:x,y:y-1}.inbound() }
-        },
-        Dir::NE => if y == 0 { None } else {
-            if even(y) {
-                Pos{x:x,y:y-1}.inbound()
-            } else { Pos{x:x+1,y:y-1}.inbound() }
-        },
-    }
-}
-
-pub fn adjs_unsafe(p : Pos) -> HashMap<Dir, Pos> {
-    let mut adjs_unsafe = HashMap::new();
-
-    for (k,v) in adjs(p).iter() {
-        if let Some(pos) = v {
-            adjs_unsafe.insert(*k,*pos);
-        } else {
-            continue;
-        }
-    }
-
-    adjs_unsafe
-}
-
-pub fn adjs(p : Pos) -> HashMap<Dir, Option<Pos>> {
-    let mut adjs = HashMap::new();
-
-    for d in simple_enum_iter::<Dir>(6) {
-        adjs.insert(d,adj(p,d));
-    }
-    adjs
-}
-
-pub fn sensed_cell(p : Pos, d : Dir, sd : SenseDir) -> Option<Pos> {
-    match sd {
-        SenseDir::Here => Some(p),
-        SenseDir::Ahead => adj(p,d),
-        SenseDir::LeftAhead => adj(p,turn(LR::Left, d)),
-        SenseDir::RightAhead => adj(p,turn(LR::Right, d)),
-    }
-}
-
-// Biology functions
-
-pub fn other_color(c : Color) -> Color {
-    match c {
-        Color::Red => Color::Black,
-        Color::Black => Color::Red,
-    }
+pub fn even< I : std::convert::TryFrom<i8> +
+                 std::ops::BitAnd<Output = I> +
+                 PartialEq >
+           (x : I) -> bool {
+  let zero = I::try_from(0);
+  let one = I::try_from(1);
+  match zero {
+    Ok(zero) => match one {
+      Ok(one) => x & one == zero,
+      _ => unreachable!(),
+    },
+    _ => unreachable!(),
+  }
 }
 
 // ENTRY_POINT
@@ -143,20 +64,6 @@ mod tests {
         for i in expected.iter() {
             assert_eq!(*i, rnd.next(0x3FFF));
         }
-    }
-
-    #[test]
-    fn test_turn() {
-        assert_eq!(Dir::NE, turn(LR::Left,  Dir::E));
-        assert_eq!(Dir::SE, turn(LR::Right, Dir::E));
-        assert_ne!(Dir::W,  turn(LR::Right, Dir::E));
-    }
-
-    #[test]
-    fn test_adj() {
-        assert_eq!(Some(Pos{x:0,y:1}), adj(Pos{x:0,y:0}, Dir::SE));
-        assert_ne!(Some(Pos{x:2,y:2}), adj(Pos{x:2,y:1}, Dir::NE));
-        assert_eq!(None, adj(Pos{x:0,y:0}, Dir::NW));
     }
 
 }

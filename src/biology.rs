@@ -22,6 +22,14 @@ pub struct Ant {
     pub has_food : bool,
 }
 
+// Biology functions
+pub fn other_color(c : Color) -> Color {
+    match c {
+        Color::Red => Color::Black,
+        Color::Black => Color::Red,
+    }
+}
+
 impl Ant {
     pub fn with_counter_new(next_id : &mut u8, color : Color)
     -> Ant

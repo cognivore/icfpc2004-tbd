@@ -38,8 +38,6 @@ use crate::geography::{
     Markers,
 };
 
-use crate::utils::*;
-
 use crate::geography::MapToken::*;
 
 use crate::biology::{
@@ -52,11 +50,12 @@ use crate::biology::Color::*;
 use crate::geometry::{
     Dir,
     Pos,
+    adj,
 };
 
 use crate::prelude::{
-    adj,
     simple_enum_iter,
+    even,
 };
 
 pub enum LookupError {
