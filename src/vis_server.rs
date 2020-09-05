@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 use crate::dev_server::{Request, ResponseBuilder, HandlerResult, serve_forever};
+use crate::cartography::World;
+use crate::geography::{Contents, MapToken::*};
+use crate::biology::Color::*;
 
 // Keep type definitions in sync with vis/types.ts.
 
@@ -14,9 +17,9 @@ struct Match {
 // Things that don't change
 #[derive(serde::Serialize)]
 struct Background {
-    rocks: Vec<(i32, i32)>,
-    red_anthill: Vec<(i32, i32)>,
-    black_anthill: Vec<(i32, i32)>,
+    rocks: Vec<(u8, u8)>,
+    red_anthill: Vec<(u8, u8)>,
+    black_anthill: Vec<(u8, u8)>,
 }
 
 // Things that change
@@ -83,14 +86,28 @@ pub fn vis_server() {
                 }
                 "/background" => {
                     let m = &query["match"];
-                    let _m: Match = serde_json::from_str(&m).unwrap();
+                    let m: Match = serde_json::from_str(&m).unwrap();
 
-                    // TODO: actual stuff
+                    let world = std::fs::read_to_string(m.world).unwrap();
+                    let world = World::from_map_string(&world);
+
+                    let mut rocks = Vec::new();
+                    let mut red_anthill = Vec::new();
+                    let mut black_anthill = Vec::new();
+                    for (pos, token) in &world.data {
+                        match token {
+                            Rock => rocks.push((pos.x, pos.y)),
+                            Clear(Contents { anthill: Some(Red), .. }) => red_anthill.push((pos.x, pos.y)),
+                            Clear(Contents { anthill: Some(Black), .. }) => black_anthill.push((pos.x, pos.y)),
+                            Clear(Contents { anthill: None, .. }) => {}
+                        }
+                    }
                     let bg = Background {
-                        rocks: vec![(0, 0), (0, 1), (3, 5)],
-                        red_anthill: vec![(1, 1)],
-                        black_anthill: vec![(2, 2)],
+                        rocks,
+                        red_anthill,
+                        black_anthill,
                     };
+
                     resp.code("200 OK")
                         .body(serde_json::to_vec(&bg).unwrap())
                 }
@@ -103,8 +120,8 @@ pub fn vis_server() {
                     let frame = ReplayFrame {
                         food: vec![(3, 3, 9), (4, 4, 5)],
                         ants: vec![
-                            Ant { color: "red", x: 1, y: 0, dir: 1, has_food: false },
-                            Ant { color: "black", x: 0, y: 2, dir: 2, has_food: true },
+                            Ant { color: "red", x: 1, y: 1, dir: 1, has_food: false },
+                            Ant { color: "black", x: 1, y: 2, dir: 2, has_food: true },
                         ],
                     };
                     resp.code("200 OK")

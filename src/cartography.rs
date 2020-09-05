@@ -89,7 +89,13 @@ impl World {
         World{ x, y, data: h }
     }
 
-    pub fn parse<'w>(map : &'w str) -> IResult<&'w str, World> {
+    pub fn from_map_string(map: &str) -> World {
+        let (rest, world) = World::parse(map).unwrap();
+        assert_eq!(rest, "\n");
+        world
+    }
+
+    fn parse<'w>(map : &'w str) -> IResult<&'w str, World> {
         match separated_pair(
             digit1,
             tag("\n"),
@@ -364,11 +370,9 @@ fn pc(Contents{anthill, food: Food(fq), ..} : Contents) -> String {
 pub fn cartography_manual_testing_entry_point() {
     use std::env;
     use std::fs;
-    let world_txt = fs::read_to_string("data/tiny.world")
+    let w = fs::read_to_string("data/tiny.world")
         .expect("File not found or is broken");
-    match World::parse(world_txt.as_str()) {
-        Err(e) => println!("Well, fuck"),
-        Ok((_, w)) => println!("``Tiny world''\n{}", w),
-    }
+    let w = World::from_map_string(&w);
+    println!("``Tiny world``:\n{}", w);
 }
 
