@@ -144,7 +144,7 @@ impl CacheEntry {
     fn get_frame(&mut self, m: &Match, frame_no: usize) -> ReplayFrame {
         if self.frame_no > frame_no {
             let world = std::fs::read_to_string(&m.world).unwrap();
-            self.world = World::from_map_string(&world);            
+            self.world = World::from_map_string(&world);
             self.rng = Random::new(m.seed);
             self.frame_no = 0;
         }
@@ -196,7 +196,7 @@ pub fn vis_server() {
                         world: "data/tiny.world".to_string(),
                         red: "data/sample.ant".to_string(),
                         black: "data/example_from_spec.ant".to_string(),
-                        seed: 42,
+                        seed: 12345,
                     };
                     let s = serde_json::to_string(&m).unwrap();
                     resp.code("200 OK")
