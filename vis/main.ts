@@ -163,13 +163,20 @@ async function main() {
     document.getElementById('frame_no')!.innerText = '' + frame_no;
 
     async function change_frame(new_frame_no: number) {
-        document.getElementById('frame_no')!.innerText = '' + frame_no + '...';
         frame_no = new_frame_no;
+        document.getElementById('frame_no')!.innerText = '' + frame.frame_no
+            + (frame.frame_no == frame_no ? '' : '...');
+
+        if (frame.frame_no == frame_no) {
+            return;
+        }
+        
         let f = await fetch_frame(new_frame_no);
-        if (f.frame_no == frame_no) {
-            document.getElementById('frame_no')!.innerText = '' + frame_no;
+        if (Math.abs(f.frame_no - frame_no) < Math.abs(frame.frame_no - frame_no)) {
             frame = f;
-            draw_stuff(tr);
+            document.getElementById('frame_no')!.innerText = '' + frame.frame_no
+                + (frame.frame_no == frame_no ? '' : '...');
+            draw_stuff(tr);            
         }
     }
 
