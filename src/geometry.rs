@@ -32,7 +32,7 @@ pub enum LR {
     Right,
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub struct Pos {
     pub x : u8,
     pub y : u8,

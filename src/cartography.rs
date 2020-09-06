@@ -80,6 +80,8 @@ use crate::prelude::{
     even,
 };
 
+use crate::dump_trace::*;
+
 pub enum LookupError {
     HexOutOfBounds,
     NotFound,
@@ -92,7 +94,9 @@ pub struct World{
     pub data : HashMap<Pos, MapToken>,
 }
 impl World {
-    pub fn round(&mut self, ant_brains : &[Vec<Instruction>; 2], rng : &mut Random) {
+    pub fn round(&mut self, ant_brains : &[Vec<Instruction>; 2], rng : &mut Random/*, count : usize*/) {
+        //dump_world(self.clone(), count);
+
         // there are two anthills, 91 ants max each
         for id in 0..182 {
             self.step(id, ant_brains, rng);
@@ -105,7 +109,6 @@ impl World {
                 if ant.resting > 0 {
                     self.set_ant_at(pos, Ant { resting : ant.resting-1, ..ant })
                 } else {
-                    //println!("{:?}", ant_brains[ant.color.clone() as usize][ant.state.0 as usize]);
                     match ant_brains[ant.color.clone() as usize][ant.state.0 as usize].clone() {
                         Sense(sdir, s1, s2, cond) => {
                             if let Some(sensed_pos) = sensed_cell(pos, ant.direction, sdir) {

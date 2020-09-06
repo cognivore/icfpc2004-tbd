@@ -149,7 +149,7 @@ impl CacheEntry {
             self.frame_no = 0;
         }
         for _ in self.frame_no..frame_no {
-            self.world.round(&self.ant_brains, &mut self.rng);
+            self.world.round(&self.ant_brains, &mut self.rng);//, self.frame_no);
         }
         self.frame_no = frame_no;
         ReplayFrame::new(frame_no, &self.world)
