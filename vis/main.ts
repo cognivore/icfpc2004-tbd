@@ -258,11 +258,17 @@ async function main() {
     document.onkeydown = e => {
         switch (e.code) {
             case 'ArrowRight':
-                change_frame(frame_no + 1);
+                if (e.shiftKey) {
+                    change_frame(frame_no + 10);
+                } else {
+                    change_frame(frame_no + 1);
+                }
                 break;
             case 'ArrowLeft':
-                if (frame_no > 0) {
-                    change_frame(frame_no - 1);
+                if (e.shiftKey) {
+                    change_frame(Math.max(frame_no - 10, 0));
+                } else {
+                    change_frame(Math.max(frame_no - 1, 0));
                 }
                 break;
         }
