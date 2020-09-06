@@ -1,6 +1,3 @@
-// TODO: remove when it's implemented
-#![allow(unused_imports, unused_variables, unused_mut)]
-
 use nom::{
     IResult,
     branch::alt,
@@ -678,8 +675,10 @@ pub fn cartography_time_workload() {
         parse_ant(&std::fs::read_to_string("data/example_from_spec.ant").unwrap()),
     ];
     let mut rng = Random::new(12345);
-    // one round
-    w.round(&ant_brains, &mut rng);
+    // full match
+    for _ in 0..100000 {
+        w.round(&ant_brains, &mut rng);
+    }
     //println!("``Sample0 world after 1 round``:\n{}", w);
 }
 
