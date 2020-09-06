@@ -274,6 +274,7 @@ async function main() {
         let x = e.clientX - r.left;
         let y = e.clientY - r.top;
         let { row, col } = unapply_transform(tr, x, y);
+        selected_ant_id = null;
         frame.ants.forEach((ant) => {
             if (ant.x == col && ant.y == row) {
                 selected_ant_id = ant.id;
