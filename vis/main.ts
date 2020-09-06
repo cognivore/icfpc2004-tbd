@@ -104,6 +104,7 @@ function draw_background(tr: Transform, bg: Background) {
         hex_path(x, y, tr.scale);
         ctx.fill();
     });
+    ctx.lineWidth = 1;
     ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
     bg.red_anthill.forEach(([j, i]) => {
         let {x, y} = apply_transform(tr, j, i);
@@ -192,14 +193,52 @@ async function main() {
             frame = f;
             document.getElementById('frame_no')!.innerText = '' + frame.frame_no
                 + (frame.frame_no == frame_no ? '' : '...');
-            draw_stuff(tr);            
+            draw_stuff(tr);
+            recompute_highlighted_state();
         }
+    }
+
+    let selected_ant_id: number | null = null;
+    let highlighted_state: string | null = null;
+
+    function update_highlighted_state(new_highlighted_state: string | null) {
+        if (highlighted_state !== null) {
+            document.getElementById(highlighted_state)!.classList.remove('highlighted');
+        }
+        highlighted_state = new_highlighted_state;
+        if (highlighted_state !== null) {
+            let el = document.getElementById(highlighted_state)!;
+            el.classList.add('highlighted');
+            el.scrollIntoView({ block: 'center' });
+        }
+    }
+
+    function recompute_highlighted_state() {
+        let new_highlighted_state = null;
+        frame.ants.forEach((ant) => {
+            if (ant.id === selected_ant_id) {
+                new_highlighted_state = ant.color + '-state-' + ant.state;
+            }
+        });
+        console.log(new_highlighted_state);
+        update_highlighted_state(new_highlighted_state);
     }
 
     let draw_stuff = (tr: Transform) => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         draw_background(tr, bg);
         draw_frame(tr, frame);
+        frame.ants.forEach((ant) => {
+            if (ant.id === selected_ant_id) {
+                let {x, y} = apply_transform(tr, ant.x, ant.y);
+                ctx.strokeStyle = '#cc0';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                let r = tr.scale * 0.4;
+                ctx.ellipse(x, y, r, r, 0, 0, 2 * Math.PI);
+                ctx.stroke();
+            }
+        })
     };
 
     let max_x = Math.max(...bg.rocks.map(([x, y]) => x));
@@ -229,6 +268,20 @@ async function main() {
                 break;
         }
     };
+
+    canvas.onclick = (e) => {
+        let r = canvas.getBoundingClientRect();
+        let x = e.clientX - r.left;
+        let y = e.clientY - r.top;
+        let { row, col } = unapply_transform(tr, x, y);
+        frame.ants.forEach((ant) => {
+            if (ant.x == col && ant.y == row) {
+                selected_ant_id = ant.id;
+            }
+        });
+        draw_stuff(tr);
+        recompute_highlighted_state();
+    }
 
     canvas.onmousemove = (e) => {
         let r = canvas.getBoundingClientRect();

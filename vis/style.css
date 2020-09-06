@@ -13,3 +13,7 @@ table.brain {
     white-space: pre;
     border-spacing: 0px;
 }
+
+.highlighted {
+    background-color: yellow;
+}
