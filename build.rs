@@ -7,16 +7,14 @@ fn traverse_dir(path: &Path, qs: &mut String, cb: &mut impl FnMut(&str, &str)) {
         let p = p.unwrap();
         let is_dir = p.metadata().unwrap().is_dir();
         let p = p.path();
-        if p.extension().unwrap() != ("rs") {
-            continue;
-        }
         let module_name = p.file_stem().unwrap().to_str().unwrap();
         let old_len = qs.len();
         qs.push_str(module_name);
         qs.push_str("::");
         if is_dir {
             traverse_dir(&p, qs, cb);
-        } else {
+        }
+        else if p.extension().unwrap() == "rs" {
             println!("cargo:rerun-if-changed={}", p.to_str().unwrap());
             let source = std::fs::read_to_string(&p).unwrap();
             let mut it = source.split_terminator('\n');
