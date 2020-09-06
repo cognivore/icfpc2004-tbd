@@ -295,6 +295,11 @@ async function main() {
         let y = e.clientY - r.top;
         let { row, col } = unapply_transform(tr, x, y);
         let tooltip = '(' + col + ', ' + row + ')';
+        frame.food.forEach(([x, y, amount]) => {
+            if (x == col && y == row) {
+                tooltip += '\nfood: ' + amount;
+            }
+        })
         frame.ants.forEach((ant) => {
             if (ant.x == col && ant.y == row) {
                 tooltip += '\n' +
