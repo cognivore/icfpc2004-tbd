@@ -11,4 +11,5 @@ td.state-no:before {
 table.brain {
     font-family: monospace;
     white-space: pre;
+    border-spacing: 0px;
 }
