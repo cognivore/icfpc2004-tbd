@@ -1,0 +1,36 @@
+<style>
+    label {
+        display: block;
+    }
+</style>
+
+<div id="error-message" style="background-color: red; position: fixed; display: none">
+  unhandled error, see console logs
+</div>
+<script>
+  window.onerror = window.onunhandledrejection = () => {
+    document.getElementById('error-message').style.display = 'block';
+  };
+</script>
+
+<form>
+    <label>
+        World
+        <input id="world" value="data/tiny.world">
+    </label>
+    <label>
+        Red ant brain
+        <input id="red-brain" value="data/sample.ant">
+    </label>
+    <label>
+        Black ant brain
+        <input id="black-brain" value="data/example_from_spec.ant">
+    </label>
+    <label>
+        Seed
+        <input id="seed" value="12345">
+    </label>
+    <input id="run-button" type="button" value="Run">
+</form>
+
+<script type="module" src="select_match.js"></script>

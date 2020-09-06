@@ -193,19 +193,9 @@ pub fn vis_server() {
             let query: HashMap<_, _> = url::form_urlencoded::parse(query.as_bytes()).collect();
             match path {
                 "/" => {
-                    let m = Match {
-                        world: "data/tiny.world".to_string(),
-                        red: "data/sample.ant".to_string(),
-                        black: "data/example_from_spec.ant".to_string(),
-                        seed: 12345,
-                    };
-                    let s = serde_json::to_string(&m).unwrap();
-                    resp.code("200 OK")
-                        .header("Content-Type", "text/html; charset=utf8")
-                        .body(format!("
-                            <p>TODO: Draw the rest of the fucking owl.</p>
-                            <p><a href='/vis/index.html#{}'>example match</a></p>
-                        ", htmlescape::encode_attribute(&s)))
+                    resp.code("302 Found")
+                        .header("Location", "/vis/select_match.html")
+                        .no_body()
                 }
                 "/background" => {
                     let m = &query["match"];

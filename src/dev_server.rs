@@ -171,6 +171,13 @@ impl ResponseHeadersBuilder {
         self
     }
 
+    pub fn no_body(mut self) -> HandlerResult {
+        write!(self.buf, "\r\n").unwrap();
+        self.stream.write_all(&self.buf)?;
+        self.print_status_message();
+        Ok(Some(self.stream))
+    }
+
     pub fn body(mut self, body: impl AsRef<[u8]>) -> HandlerResult {
         let body = body.as_ref();
         write!(self.buf, "Content-Length: {}\r\n\r\n", body.len()).unwrap();

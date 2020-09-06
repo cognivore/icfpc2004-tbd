@@ -220,7 +220,6 @@ async function main() {
                 new_highlighted_state = ant.color + '-state-' + ant.state;
             }
         });
-        console.log(new_highlighted_state);
         update_highlighted_state(new_highlighted_state);
     }
 
