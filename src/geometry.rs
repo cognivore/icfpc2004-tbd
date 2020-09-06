@@ -47,7 +47,7 @@ pub fn turn(lr : LR, dir : Dir) -> Dir {
 
 pub fn adj_unsafe(p : Pos, d : Dir) -> Pos {
     if let Some(a) = adj(p,d) {
-        return a
+        a
     } else {
         panic!("No adjacent cell in that direction!");
     }
@@ -56,22 +56,18 @@ pub fn adj_unsafe(p : Pos, d : Dir) -> Pos {
 
 pub fn adj(Pos{x,y} : Pos, d : Dir) -> Option<Pos> {
     match d {
-        Dir::E  => Pos{x: x+1, y: y}.inbound(),
-        Dir::SE => if even(y) {Pos{x:x,y:y+1}.inbound()} else {Pos{x:x+1,y:y+1}.inbound()},
+        Dir::E  => Pos{x: x+1, y}.inbound(),
+        Dir::SE => if even(y) {Pos{x,y:y+1}.inbound()} else {Pos{x:x+1,y:y+1}.inbound()},
         Dir::SW => if even(y) {
             if x == 0 { None } else { Pos{x:x-1,y:y+1}.inbound() }
-        } else { Pos{x:x,y:y+1}.inbound() },
-        Dir::W  => if x == 0 { None } else { Pos{x:x-1,y:y}.inbound() },
-        Dir::NW => if y == 0 { None } else {
-            if even(y) {
-                if x == 0 { None } else { Pos{x:x-1,y:y-1}.inbound() }
-            } else { Pos{x:x,y:y-1}.inbound() }
-        },
-        Dir::NE => if y == 0 { None } else {
-            if even(y) {
-                Pos{x:x,y:y-1}.inbound()
-            } else { Pos{x:x+1,y:y-1}.inbound() }
-        },
+        } else { Pos{x,y:y+1}.inbound() },
+        Dir::W  => if x == 0 { None } else { Pos{x:x-1,y}.inbound() },
+        Dir::NW => if y == 0 { None } else if even(y) {
+            if x == 0 { None } else { Pos{x:x-1,y:y-1}.inbound() }
+        } else { Pos{x,y:y-1}.inbound() },
+        Dir::NE => if y == 0 { None } else if even(y) {
+            Pos{x,y:y-1}.inbound()
+        } else { Pos{x:x+1,y:y-1}.inbound() },
     }
 }
 

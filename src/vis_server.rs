@@ -6,6 +6,9 @@ use crate::geography::{Contents, MapToken::*};
 use crate::biology::Color::*;
 use crate::{neurology::{Instruction, parse_ant}, geometry::Pos, number_theory::Random};
 
+//use crate::dump_trace::*;
+
+
 // Keep type definitions in sync with vis/types.ts.
 
 #[derive(serde::Deserialize, serde::Serialize)]

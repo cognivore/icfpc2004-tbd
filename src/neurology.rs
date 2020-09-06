@@ -26,7 +26,7 @@ pub enum Instruction {
 
 impl Instruction {
     pub fn parse(s: &str) -> Self {
-        let end = s.find(';').unwrap_or(s.len());
+        let end = s.find(';').unwrap_or_else(|| s.len());
         let s = &s[..end];
         let mut it = s.split_whitespace().map(str::to_lowercase);
         let cmd = it.next().unwrap();

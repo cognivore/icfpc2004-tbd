@@ -35,14 +35,14 @@ impl Ant {
     -> Ant
     {
         let ant = Ant{
-            id: next_id.clone(),
+            id: *next_id,
             color,
             state: State(0),
             resting: 0,
             direction: Dir::E,
             has_food: false,
         };
-        *next_id = *next_id + 1;
+        *next_id += 1;
         ant
     }
     pub fn new(color : Color) -> Ant {
