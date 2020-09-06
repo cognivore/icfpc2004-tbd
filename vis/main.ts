@@ -140,6 +140,22 @@ function draw_frame(tr: Transform, frame: ReplayFrame) {
     });
 }
 
+function render_brain(color: 'red' | 'black', brain: string) {
+    let lines = brain.split('\n');
+    let last_line = lines.pop();
+    assert(last_line === '', last_line);
+
+    let h = '<table class="brain">';
+    lines.forEach((line, i) => {
+        h += `<tr id="${color}-state-${i}">`;
+        h += `<td class="state-no" data-state-no="${i}"></td>`;
+        h += `<td>${line}</td>`;  // TODO: HTML entity escape
+        h += '</tr>';
+    })
+    h += '</table>';
+    document.getElementById(color + '-brain')!.innerHTML = h;
+}
+
 async function main() {
     let { hash } = window.location;
     assert(hash.startsWith('#'), hash);
@@ -149,8 +165,8 @@ async function main() {
     assert(r.ok);
     let bg = await r.json() as Background;
 
-    document.getElementById('red_program')!.innerText = bg.red_program;
-    document.getElementById('black_program')!.innerText = bg.black_program;
+    render_brain('red', bg.red_brain);
+    render_brain('black', bg.black_brain);
     
     async function fetch_frame(frame_no: number) {
         r = await fetch('/frame?match=' + encodeURIComponent(JSON.stringify(match)) + '&frame_no=' + frame_no);

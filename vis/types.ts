@@ -12,8 +12,8 @@ export interface Background {
     rocks: [number, number][],
     red_anthill: [number, number][],
     black_anthill: [number, number][],
-    red_program: string,
-    black_program: string,
+    red_brain: string,
+    black_brain: string,
 }
 
 export interface ReplayFrame {

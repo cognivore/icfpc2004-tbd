@@ -1,0 +1,14 @@
+td.state-no {
+    color: gray;
+    text-align: right;
+    padding-right: 7px;
+}
+
+td.state-no:before {
+    content: attr(data-state-no);
+}
+
+table.brain {
+    font-family: monospace;
+    white-space: pre;
+}

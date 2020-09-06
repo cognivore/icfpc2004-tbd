@@ -21,12 +21,12 @@
         grid-column: 1;
         grid-row: 3;
     }
-    #red_program {
+    #red-brain {
         grid-column: 2;
         grid-row: 1/4;
         overflow-y: auto;
     }
-    #black_program {
+    #black-brain {
         grid-column: 3;
         grid-row: 1/4;
         overflow-y: auto;
@@ -38,10 +38,6 @@
     #canvas:hover {
         box-shadow: 0px 0px 4px rgba(0, 0, 0, 1);
     }
-
-    #red_program, #black_program {
-        white-space: pre;
-    }    
 </style>
 
 <title>ants</title>
@@ -59,8 +55,8 @@
     <p id="help-cell"><i>mouse drag and wheel; hover; left, right</i></p>
     <p id="frame-cell">Frame: <span id="frame_no"></span></p>
     <canvas id="canvas" width=500 height=400></canvas>
-    <div id="red_program"></div>
-    <div id="black_program"></div>
+    <div id="red-brain"></div>
+    <div id="black-brain"></div>
 </div>
 
 <script type="module" src="main.js"></script>
