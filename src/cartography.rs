@@ -60,6 +60,7 @@ use crate::geometry::{
 
 use crate::neurology::{
     Instruction,
+    parse_ant
 };
 
 use crate::neurology::Instruction::*;
@@ -94,9 +95,7 @@ pub struct World{
     pub data : HashMap<Pos, MapToken>,
 }
 impl World {
-    pub fn round(&mut self, ant_brains : &[Vec<Instruction>; 2], rng : &mut Random/*, count : usize*/) {
-        //dump_world(self.clone(), count);
-
+    pub fn round(&mut self, ant_brains : &[Vec<Instruction>; 2], rng : &mut Random) {
         // there are two anthills, 91 ants max each
         for id in 0..182 {
             self.step(id, ant_brains, rng);
@@ -685,5 +684,20 @@ pub fn cartography_manual_testing_entry_point() {
         .expect("File not found or is broken");
     let w = World::from_map_string(&w);
     println!("``Tiny world``:\n{}", w);
+}
+
+// ENTRY_POINT
+pub fn cartography_time_workload() {
+    use std::fs;
+    let w = fs::read_to_string("data/sample0.world")
+        .expect("File not found or is broken");
+    let mut w = World::from_map_string(&w);
+    let ant_brains = [
+        parse_ant(&std::fs::read_to_string("data/sample.ant").unwrap()),
+        parse_ant(&std::fs::read_to_string("data/example_from_spec.ant").unwrap()),
+    ];
+    let mut rng = Random::new(12345);
+    // one round
+    w.round(&ant_brains, &mut rng);
 }
 
