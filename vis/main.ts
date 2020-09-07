@@ -19,16 +19,20 @@ function hex_path(x: number, y: number, size: number) {
     ctx.closePath();
 }
 
-function draw_dot({x, y, dir, size, color}: { x: number, y: number, dir: number, size: number, color: string }) {
+function draw_dot(
+    { x, y, dir, size, color }:
+    { x: number, y: number, dir: number, size: number, color: string; }
+) {
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(size, size);
     ctx.rotate(dir * Math.PI / 3);
     
-    let w = H_SCALE * size * 0.5;
-    let s = size * 0.25;
+    let w = H_SCALE * size * 0.5 * Math.sqrt(0.9);
+    let s = size * 0.25 * Math.sqrt(0.9);
     ctx.moveTo(x - w, y - s);
     ctx.fillStyle = color;
+    ctx.beginPath();
     ctx.ellipse(-0.3, 0, 0.03, 0.03, 0, 0, 2 * Math.PI);
     ctx.fill();
     
@@ -159,46 +163,22 @@ function draw_frame(tr: Transform, frame: ReplayFrame) {
     frame.red_markers.forEach(([j, i, markers]) => {
         let {x, y} = apply_transform(tr, j, i);
         let color = '#f60';
-        if (markers.marker0) {
-            draw_dot({x, y, dir: 0, size: Math.sqrt(9 / 10) * tr.scale, color});
-        }
-        if (markers.marker1) {
-            draw_dot({x, y, dir: 1, size: Math.sqrt(9 / 10) * tr.scale, color});
-        }
-        if (markers.marker2) {
-            draw_dot({x, y, dir: 2, size: Math.sqrt(9 / 10) * tr.scale, color});
-        }
-        if (markers.marker3) {
-            draw_dot({x, y, dir: 3, size: Math.sqrt(9 / 10) * tr.scale, color});
-        }
-        if (markers.marker4) {
-            draw_dot({x, y, dir: 4, size: Math.sqrt(9 / 10) * tr.scale, color});
-        }
-        if (markers.marker5) {
-            draw_dot({x, y, dir: 5, size: Math.sqrt(9 / 10) * tr.scale, color});
+
+        for (let i = 0; i < 6; i++) {
+            if (markers[i]) {
+                draw_dot({x, y, dir: i, size: tr.scale, color});
+            }
         }
     })
     
     frame.black_markers.forEach(([j, i, markers]) => {
         let {x, y} = apply_transform(tr, j, i);
         let color = '#000';
-        if (markers.marker0) {
-            draw_dot({x, y, dir: 0, size: Math.sqrt(9 / 10) * tr.scale, color});
-        }
-        if (markers.marker1) {
-            draw_dot({x, y, dir: 1, size: Math.sqrt(9 / 10) * tr.scale, color});
-        }
-        if (markers.marker2) {
-            draw_dot({x, y, dir: 2, size: Math.sqrt(9 / 10) * tr.scale, color});
-        }
-        if (markers.marker3) {
-            draw_dot({x, y, dir: 3, size: Math.sqrt(9 / 10) * tr.scale, color});
-        }
-        if (markers.marker4) {
-            draw_dot({x, y, dir: 4, size: Math.sqrt(9 / 10) * tr.scale, color});
-        }
-        if (markers.marker5) {
-            draw_dot({x, y, dir: 5, size: Math.sqrt(9 / 10) * tr.scale, color});
+        
+        for (let i = 0; i < 6; i++) {
+            if (markers[i]) {
+                draw_dot({x, y, dir: i+0.25, size: tr.scale, color});
+            }
         }
     })
 }

@@ -67,8 +67,8 @@ struct ReplayFrame {
     frame_no: usize,
     food: Vec<(u8, u8, u16)>,  // (x, y, amount)
     ants: Vec<Ant>,
-    red_markers: Vec<(u8, u8, Markers)>, // (x, y, bits)
-    black_markers: Vec<(u8, u8, Markers)>,
+    red_markers: Vec<(u8, u8, Vec<bool>)>, // (x, y, bits)
+    black_markers: Vec<(u8, u8, Vec<bool>)>,
 }
 
 #[derive(serde::Serialize)]
@@ -81,16 +81,6 @@ struct Ant {
     has_food: bool,
     state: u16,
     resting: u8,
-}
-
-#[derive(serde::Serialize)]
-struct Markers{
-    marker0 : bool,
-    marker1 : bool,
-    marker2 : bool,
-    marker3 : bool,
-    marker4 : bool,
-    marker5 : bool,
 }
 
 impl ReplayFrame {
@@ -108,26 +98,20 @@ impl ReplayFrame {
                     }
                     if let Some(markers) = markers.0.get(&Red) {
                         if !markers.is_empty() {
-                            red_markers.push((x, y, Markers{
-                                marker0 : markers.get(0),
-                                marker1 : markers.get(1),
-                                marker2 : markers.get(2),
-                                marker3 : markers.get(3),
-                                marker4 : markers.get(4),
-                                marker5 : markers.get(5),
-                            }));
+                            let mut ms = Vec::new();
+                            for i in 0..6 {
+                                ms.push(markers.get(i));
+                            }
+                            red_markers.push((x, y, ms));
                         }
                     }
                     if let Some(markers) = markers.0.get(&Black) {
                         if !markers.is_empty() {
-                            black_markers.push((x, y, Markers{
-                                marker0 : markers.get(0),
-                                marker1 : markers.get(1),
-                                marker2 : markers.get(2),
-                                marker3 : markers.get(3),
-                                marker4 : markers.get(4),
-                                marker5 : markers.get(5),
-                            }));
+                            let mut ms = Vec::new();
+                            for i in 0..6 {
+                                ms.push(markers.get(i));
+                            }
+                            black_markers.push((x, y, ms));
                         }
                     }
                     if let Some(ant) = ant {
