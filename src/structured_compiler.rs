@@ -12,7 +12,7 @@ fn make_fixup() -> Fixup {
 impl From<&Fixup> for State {
     fn from(it: &Fixup) -> State {
         let val = State(it.borrow().0);
-        assert_ne!(val, INVALID_STATE);
+        assert_ne!(val, INVALID_STATE); // it's all about this line actually
         val
     }
 }
@@ -35,9 +35,12 @@ enum FixableInstruction {
 use FixableInstruction as FI;
 
 
-
 struct CompilerCtx {
     insns: Vec<FixableInstruction>,
+
+    // The list of jump addresses that should be set to the address of the logically next
+    // instruction as the destination. We might need several because both branches of an "if/else"
+    // jump to the first instruction after the if/else statement and this can compound.
     fixups: Vec<Fixup>,
 }
 
@@ -92,7 +95,7 @@ impl CompilerCtx {
 
 
     fn set_fixup(&mut self) -> Fixup {
-        // convenience metod for 1-address instructions.
+        // convenience method for 1-address instructions.
         assert!(self.fixups.len() == 0);
         let fx = make_fixup();
         self.fixups.push(fx.clone());
@@ -132,14 +135,20 @@ fn generic_2branch(branch1: impl FnOnce(), branch2: impl FnOnce(),
         ctx.fixups.push(fixup1.clone());
     });
 
+    // ctx.fixups points to the first state argument, which branch1 would either fix up and replace
+    // with its own last instruction destination or leave intact if empty
     branch1();
 
-    let fixups_after_branch1: Vec<Fixup> = with_ctx(move |ctx| {
+    // save fixups for later and set ctx.fixups to the second argument, so that the branch2 can fix
+    // it up and replace it or also leave intact
+    let fixups_after_branch1: Vec<Fixup> = with_ctx(|ctx| {
         std::mem::replace(&mut ctx.fixups, vec![fixup2.clone()])
     });
 
     branch2();
 
+    // join the fixups that should be pointing at the first instruction after the entire "if/else"
+    // statement
     with_ctx(|ctx| {
         ctx.fixups.extend(fixups_after_branch1);
     });
