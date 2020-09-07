@@ -1,9 +1,9 @@
-use crate::geometry::{
+pub use crate::geometry::{
     SenseDir,
     LR,
 };
 
-use crate::phenomenology::{
+pub use crate::phenomenology::{
     SenseCondition,
     Marker,
 };

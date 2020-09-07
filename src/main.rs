@@ -12,6 +12,7 @@ pub mod neurology;
 pub mod number_theory;
 pub mod vis_server;
 pub mod dump_trace;
+pub mod structured_compiler;
 
 // produced by build.rs
 include!(concat!(env!("OUT_DIR"), "/entry_points.rs"));
