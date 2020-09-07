@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::fmt::Debug;
 use std::convert::TryInto;
 use std::collections::HashMap;
-use crate::neurology::{State, Instruction};
+use crate::{phenomenology::{Marker, SenseCondition}, neurology::{State, Instruction, SenseDir, LR}};
 
 #[macro_export]
 macro_rules! call {
@@ -68,11 +68,85 @@ fn suspend(insn: Instruction) -> AntResult<Branch> {
     })
 }
 
+pub fn sense(sense_dir: SenseDir, cond: SenseCondition) -> AntResult<bool> {
+    let st_true = State(1);
+    let st_false = State(0);
+    let res = suspend(Instruction::Sense(sense_dir, st_true, st_false, cond))?;
+    Ok(if res == st_true {
+        true
+    } else if res == st_false {
+        false
+    } else {
+        panic!()
+    })
+}
+
+pub fn mark(m: Marker) -> AntResult<()> {
+    let st = State(0);
+    let res = suspend(Instruction::Mark(m, st))?;
+    assert_eq!(res, st);
+    Ok(())
+}
+
+pub fn unmark(m: Marker) -> AntResult<()> {
+    let st = State(0);
+    let res = suspend(Instruction::Unmark(m, st))?;
+    assert_eq!(res, st);
+    Ok(())
+}
+
+pub fn pickup() -> AntResult<bool> {
+    let st_true = State(1);
+    let st_false = State(0);
+    let res = suspend(Instruction::PickUp(st_true, st_false))?;
+    Ok(if res == st_true {
+        true
+    } else if res == st_false {
+        false
+    } else {
+        panic!()
+    })
+}
+
 pub fn drop() -> AntResult<()> {
     let st = State(0);
     let res = suspend(Instruction::Drop(st))?;
     assert_eq!(res, st);
     Ok(())
+}
+
+pub fn turn(lr: LR) -> AntResult<()> {
+    let st = State(0);
+    let res = suspend(Instruction::Turn(lr, st))?;
+    assert_eq!(res, st);
+    Ok(())
+}
+
+pub fn move_() -> AntResult<bool> {
+    let st_true = State(1);
+    let st_false = State(0);
+    let res = suspend(Instruction::Move(st_true, st_false))?;
+    Ok(if res == st_true {
+        true
+    } else if res == st_false {
+        false
+    } else {
+        panic!()
+    })
+}
+
+/// true with probability 1/p
+pub fn flip(p: u16) -> AntResult<bool> {
+    let st_true = State(1);
+    let st_false = State(0);
+    let res = suspend(Instruction::Flip(p, st_true, st_false))?;
+    Ok(if res == st_true {
+        true
+    } else if res == st_false {
+        false
+    } else {
+        panic!()
+    })
 }
 
 pub fn traverse(ant: fn() -> AntResult<()>) -> Vec<(Instruction, String)> {
@@ -85,9 +159,12 @@ pub fn traverse(ant: fn() -> AntResult<()>) -> Vec<(Instruction, String)> {
     let mut paths: Vec<Vec<(Instruction, Branch)>> = vec![vec![]];
 
     while let Some(path) = paths.pop() {
+        // eprintln!("{:?}", path);
+        let mut rev_path = path.clone();
+        rev_path.reverse();
         CTX.with(|ctx| *ctx.borrow_mut() = Ctx {
             stack: vec![],
-            prerecorded: path.clone(),
+            prerecorded: rev_path,
         });
         let _callret = CallRet::new(Loc { file: "compiler", line: 0, column: 0 }, "ant");
         match ant() {
