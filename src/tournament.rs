@@ -1,3 +1,5 @@
+use std::cmp::Ordering::*;
+
 use crate::biology::Color;
 use crate::biology::Color::*;
 
@@ -30,12 +32,10 @@ pub fn full_match(world : &mut World, ant_brains : &[Vec<Instruction>; 2], rng :
     }
     let red_score = world.food_at_anthill(Red).0;
     let black_score = world.food_at_anthill(Black).0;
-    if red_score > black_score {
-        Some(Red)
-    } else if red_score < black_score {
-        Some(Black)
-    } else {
-        None
+    match red_score.cmp(&black_score) {
+        Greater => Some(Red),
+        Less => Some(Black),
+        Equal => None,
     }
 }
 
@@ -79,8 +79,8 @@ pub fn tournament_ep() {
 
     let mut sum_score = MatchScore::new();
 
-    let ant1 = std::env::args().nth(2).unwrap_or("example_from_spec".to_string());
-    let ant2 = std::env::args().nth(3).unwrap_or("example_from_spec".to_string());
+    let ant1 = std::env::args().nth(2).unwrap_or_else(|| "example_from_spec".to_string());
+    let ant2 = std::env::args().nth(3).unwrap_or_else(|| "example_from_spec".to_string());
 
     for wpath in worlds {
         let w = fs::read_to_string(wpath.as_str())
@@ -90,7 +90,7 @@ pub fn tournament_ep() {
             parse_ant(&std::fs::read_to_string(format!("data/{}.ant", ant1)).unwrap()),
             parse_ant(&std::fs::read_to_string(format!("data/{}.ant", ant2)).unwrap()),
         ];
-        let mut rng = Random::new(seeds.pop().unwrap());
+        let mut rng = Random::new(seeds.pop().unwrap_or(12345));
 
         let mut wscore = MatchScore::new();
 

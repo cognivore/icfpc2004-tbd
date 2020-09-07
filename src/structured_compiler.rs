@@ -96,7 +96,7 @@ impl CompilerCtx {
 
     fn set_fixup(&mut self) -> Fixup {
         // convenience method for 1-address instructions.
-        assert!(self.fixups.len() == 0);
+        assert!(self.fixups.is_empty());
         let fx = make_fixup();
         self.fixups.push(fx.clone());
         fx
@@ -180,7 +180,7 @@ pub fn pickup() {
 
 
 pub fn drop() {
-    with_fixup(|fixup| FI::Drop(fixup));
+    with_fixup(FI::Drop);
 }
 
 
