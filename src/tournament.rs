@@ -79,16 +79,16 @@ pub fn tournament_ep() {
 
     let mut sum_score = MatchScore::new();
 
-    let ant1 = std::env::args().nth(2).unwrap_or_else(|| "example_from_spec".to_string());
-    let ant2 = std::env::args().nth(3).unwrap_or_else(|| "example_from_spec".to_string());
+    let ant1 = std::env::args().nth(2).unwrap_or_else(|| "data/example_from_spec".to_string());
+    let ant2 = std::env::args().nth(3).unwrap_or_else(|| "data/example_from_spec".to_string());
 
     for wpath in worlds {
         let w = fs::read_to_string(wpath.as_str())
             .expect("File not found or is broken");
         let mut w = World::from_map_string(&w);
         let mut ant_brains = [
-            parse_ant(&std::fs::read_to_string(format!("data/{}.ant", ant1)).unwrap()),
-            parse_ant(&std::fs::read_to_string(format!("data/{}.ant", ant2)).unwrap()),
+            parse_ant(&std::fs::read_to_string(format!("{}.ant", ant1)).unwrap()),
+            parse_ant(&std::fs::read_to_string(format!("{}.ant", ant2)).unwrap()),
         ];
         let mut rng = Random::new(seeds.pop().unwrap_or(12345));
 
