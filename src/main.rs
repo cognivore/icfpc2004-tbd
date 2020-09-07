@@ -1,5 +1,6 @@
 #![allow(clippy::new_without_default)]  // number of times this was useful: http://www.quickmeme.com/Bill-Clinton-Zero
 
+pub mod magic;
 pub mod example_module;
 pub mod dev_server;
 pub mod prelude;
@@ -13,6 +14,7 @@ pub mod number_theory;
 pub mod vis_server;
 pub mod dump_trace;
 pub mod structured_compiler;
+pub mod magic_examples;
 
 // produced by build.rs
 include!(concat!(env!("OUT_DIR"), "/entry_points.rs"));

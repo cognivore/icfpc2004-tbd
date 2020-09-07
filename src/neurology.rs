@@ -9,10 +9,10 @@ pub use crate::phenomenology::{
 };
 
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct State(pub u16);
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Instruction {
     Sense(SenseDir, State, State, SenseCondition),
     Mark(Marker, State),
@@ -25,6 +25,40 @@ pub enum Instruction {
 }
 
 impl Instruction {
+    pub fn transitions_mut(&mut self) -> impl Iterator<Item=&mut State> {
+        let (st1, st2) = match self {
+            Instruction::Sense(_, st1, st2, _) |
+            Instruction::PickUp(st1, st2) |
+            Instruction::Move(st1, st2) |
+            Instruction::Flip(_, st1, st2)
+                => (st1, Some(st2)),
+
+            Instruction::Mark(_, st) |
+            Instruction::Unmark(_, st) | 
+            Instruction::Drop(st) |
+            Instruction::Turn(_, st)
+                => (st, None),
+        };
+        std::iter::once(st1).chain(st2)
+    }
+
+    pub fn transitions(&self) -> impl Iterator<Item=&State> {
+        let (st1, st2) = match self {
+            Instruction::Sense(_, st1, st2, _) |
+            Instruction::PickUp(st1, st2) |
+            Instruction::Move(st1, st2) |
+            Instruction::Flip(_, st1, st2)
+                => (st1, Some(st2)),
+
+            Instruction::Mark(_, st) |
+            Instruction::Unmark(_, st) | 
+            Instruction::Drop(st) |
+            Instruction::Turn(_, st)
+                => (st, None),
+        };
+        std::iter::once(st1).chain(st2)
+    }
+
     pub fn parse(s: &str) -> Self {
         let end = s.find(';').unwrap_or_else(|| s.len());
         let s = &s[..end];

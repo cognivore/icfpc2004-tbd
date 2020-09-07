@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum SenseCondition {
     Friend,
     Foe,
@@ -12,7 +12,7 @@ pub enum SenseCondition {
     FoeHome,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Marker(pub usize);
 
 impl Marker {
