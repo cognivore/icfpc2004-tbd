@@ -67,6 +67,8 @@ struct ReplayFrame {
     frame_no: usize,
     food: Vec<(u8, u8, u16)>,  // (x, y, amount)
     ants: Vec<Ant>,
+    red_markers: Vec<(u8, u8, Markers)>, // (x, y, bits)
+    black_markers: Vec<(u8, u8, Markers)>,
 }
 
 #[derive(serde::Serialize)]
@@ -81,16 +83,52 @@ struct Ant {
     resting: u8,
 }
 
+#[derive(serde::Serialize)]
+struct Markers{
+    marker0 : bool,
+    marker1 : bool,
+    marker2 : bool,
+    marker3 : bool,
+    marker4 : bool,
+    marker5 : bool,
+}
+
 impl ReplayFrame {
     fn new(frame_no: usize, w: &World) -> Self {
         let mut food = Vec::new();
         let mut ants = Vec::new();
+        let mut red_markers = Vec::new();
+        let mut black_markers = Vec::new();
         for (&Pos { x, y }, token) in &w.data {
             match token {
                 Rock => {}
-                Clear(Contents { food: f, ant, .. }) => {
+                Clear(Contents { food: f, ant, markers, .. }) => {
                     if f.0 > 0 {
                         food.push((x, y, f.0));
+                    }
+                    if let Some(markers) = markers.0.get(&Red) {
+                        if !markers.is_empty() {
+                            red_markers.push((x, y, Markers{
+                                marker0 : markers.get(0),
+                                marker1 : markers.get(1),
+                                marker2 : markers.get(2),
+                                marker3 : markers.get(3),
+                                marker4 : markers.get(4),
+                                marker5 : markers.get(5),
+                            }));
+                        }
+                    }
+                    if let Some(markers) = markers.0.get(&Black) {
+                        if !markers.is_empty() {
+                            black_markers.push((x, y, Markers{
+                                marker0 : markers.get(0),
+                                marker1 : markers.get(1),
+                                marker2 : markers.get(2),
+                                marker3 : markers.get(3),
+                                marker4 : markers.get(4),
+                                marker5 : markers.get(5),
+                            }));
+                        }
                     }
                     if let Some(ant) = ant {
                         ants.push(Ant {
@@ -114,6 +152,8 @@ impl ReplayFrame {
             frame_no,
             food,
             ants,
+            red_markers,
+            black_markers,
         }
     }
 }

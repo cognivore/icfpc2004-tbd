@@ -20,6 +20,8 @@ export interface ReplayFrame {
     frame_no: number,
     food: [number, number, number][],
     ants: Ant[],
+    red_markers: [number, number, Markers][],
+    black_markers: [number, number, Markers][],
 }
 
 export interface Ant {
@@ -31,4 +33,13 @@ export interface Ant {
     has_food: boolean,
     state: number,
     resting: number,
+}
+
+export interface Markers {
+  marker0: boolean,
+  marker1: boolean,
+  marker2: boolean,
+  marker3: boolean,
+  marker4: boolean,
+  marker5: boolean,
 }
