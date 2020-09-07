@@ -20,16 +20,16 @@ macro_rules! call {
 
 #[macro_export]
 macro_rules! var {
-    (let $name:ident = $value:tt) => {
+    (let $name:ident = $value:expr) => {
         let $name = crate::magic::Var::new(stringify!($name), $value);
     };
-    (let $name:ident: $tp:ty = $value:tt) => {
+    (let $name:ident: $tp:ty = $value:expr) => {
         let $name: Var<$tp> = crate::magic::Var::new(stringify!($name), $value);
     };
-    (let mut $name:ident = $value:tt) => {
+    (let mut $name:ident = $value:expr) => {
         let mut $name = crate::magic::Var::new(stringify!($name), $value);
     };
-    (let mut $name:ident: $tp:ty = $value:tt) => {
+    (let mut $name:ident: $tp:ty = $value:expr) => {
         let mut $name: Var<$tp> = crate::magic::Var::new(stringify!($name), $value);
     };
 }

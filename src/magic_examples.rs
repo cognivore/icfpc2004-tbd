@@ -47,6 +47,7 @@ Instead, write
 
 use crate::magic::*;
 use crate::neurology::LR;
+use crate::phenomenology::Marker;
 use crate::{call, var};
 
 fn move_n(n: i32) -> AntResult<()> {
@@ -58,10 +59,14 @@ fn move_n(n: i32) -> AntResult<()> {
 }
 
 fn looping_ant() -> AntResult<()> {
+    var!(let coin = call!(flip(2)));
     if call!(flip(3)) {
         call!(pickup());
     } else {
         call!(move_());
+    }
+    if coin.get() {
+        call!(mark(Marker(0)));
     }
     loop {
         call!(move_n(3));
