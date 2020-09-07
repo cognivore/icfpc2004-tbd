@@ -97,3 +97,16 @@ pub fn magic_example() {
     eprintln!("{:?}", brain);
     eprintln!();
 }
+
+fn unbounded_ant() -> AntResult<()> {
+    var!(let mut i = 0);
+    loop {
+        call!(move_());
+        i.set(i.get() + 1);
+    }
+}
+
+// ENTRY_POINT
+pub fn make_unbounded_ant() {
+    compile(unbounded_ant);
+}

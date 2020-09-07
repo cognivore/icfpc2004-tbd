@@ -186,6 +186,7 @@ pub fn compile(ant: fn() -> AntResult<()>) -> AnnotatedBrain {
 
     let mut paths: Vec<Vec<(Instruction, Branch)>> = vec![vec![]];
 
+    eprintln!("'compiling'...");
     while let Some(path) = paths.pop() {
         // eprintln!("{:?}", path);
         let mut rev_path = path.clone();
@@ -205,8 +206,17 @@ pub fn compile(ant: fn() -> AntResult<()>) -> AnnotatedBrain {
                     let idx = brain.len();
 
                     let loc = &exe_state.last().unwrap().caller;
-                    brain.push((insn, format!("{}:{}", loc.file, loc.line)));
+                    let mut comment = format!("{}:{}", loc.file, loc.line);
+                    for frame in &exe_state {
+                        for (name, value) in &frame.vars {
+                            use std::fmt::Write;
+                            write!(comment, ", {}={}", name, value).unwrap();
+                        }
+                    }
+                    eprintln!("  ...found new state: {}", comment);
+                    brain.push((insn, comment));
                     branch_to_state.push(HashMap::new());
+
                     let state = State(idx.try_into().unwrap());
 
                     let old = path_to_state.insert(path.clone(), idx);
@@ -230,6 +240,7 @@ pub fn compile(ant: fn() -> AntResult<()>) -> AnnotatedBrain {
             }
         }
     }
+    eprintln!("done, {} states", brain.len());
     assert_eq!(brain.len(), branch_to_state.len());
     AnnotatedBrain(brain.into_iter().zip(branch_to_state)
         .map(|((mut insn, comment), branch_to_state)| {
