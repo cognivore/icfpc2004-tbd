@@ -15,6 +15,7 @@ pub mod vis_server;
 pub mod dump_trace;
 pub mod structured_compiler;
 pub mod magic_examples;
+pub mod tournament;
 
 // produced by build.rs
 include!(concat!(env!("OUT_DIR"), "/entry_points.rs"));

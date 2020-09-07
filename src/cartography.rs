@@ -27,6 +27,7 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use std::fmt;
 use std::fmt::{Display, Formatter};
+use std::time::Instant;
 
 use crate::biology::{
     Color,
@@ -361,6 +362,18 @@ impl World {
         Food(0)
     }
 
+    pub fn food_at_anthill(&self, c : Color) -> Food {
+        let mut foodn = 0;
+        for v in self.data.values() {
+            if let Clear(Contents { anthill : Some(color), food, .. }) = v {
+                if c == *color {
+                    foodn += food.0;
+                }
+            }
+        }
+        Food(foodn)
+    }
+
     pub fn set_ant_at(&mut self, p : Pos, a : Ant) {
         if let Some(Clear(t)) = self.data.get_mut(&p) {
             t.ant = Some(a);
@@ -676,9 +689,10 @@ pub fn cartography_time_workload() {
     ];
     let mut rng = Random::new(12345);
     // full match
+    let time = Instant::now();
     for _ in 0..100000 {
         w.round(&ant_brains, &mut rng);
     }
+    println!("Elapsed time for full match: {:?}", time.elapsed());
     //println!("``Sample0 world after 1 round``:\n{}", w);
 }
-

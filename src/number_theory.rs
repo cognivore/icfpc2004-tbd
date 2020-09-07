@@ -1,3 +1,4 @@
+#[derive(Debug, Clone)]
 pub struct Random(u32);
 
 // Rust actively prevented me from allowing the bad global randomint() implementation. Use the struct.
