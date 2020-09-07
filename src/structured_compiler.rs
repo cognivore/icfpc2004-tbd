@@ -74,7 +74,7 @@ impl CompilerCtx {
     }
 
 
-    fn fixup_state(&mut self, state: State) {
+    fn _fixup_state(&mut self, state: State) {
         for it in self.fixups.iter() {
             it.replace(state);
         }
@@ -82,18 +82,19 @@ impl CompilerCtx {
     }
 
 
+    // set all fixup addresses to the address of the next instruction to be inserted.
     fn fixup(&mut self) {
-        // set all fixup addresses to the address of the next instruction to be inserted.
-        self.fixup_state(State(self.insns.len() as u16));
+        self._fixup_state(State(self.insns.len() as u16));
     }
 
 
+    // implement an implicit main loop by calling this at the end.
     fn fixup_mainloop(&mut self) {
-        // implement an implicit main loop by calling this at the end.
-        self.fixup_state(State(0));
+        self._fixup_state(State(0));
     }
 
 
+    // convenience method for 1-address instructions.
     fn set_fixup(&mut self) -> Fixup {
         // convenience method for 1-address instructions.
         assert!(self.fixups.is_empty());
@@ -116,6 +117,7 @@ fn with_ctx<T>(f: impl FnOnce(&mut CompilerCtx) -> T) -> T {
 }
 
 
+// does all the ceremonies, pushes instruction.
 fn with_fixup(f: impl FnOnce(Fixup) -> FixableInstruction) {
     with_ctx(|ctx| {
         ctx.fixup();
@@ -135,11 +137,12 @@ fn generic_2branch(branch1: impl FnOnce(), branch2: impl FnOnce(),
         ctx.fixups.push(fixup1.clone());
     });
 
-    // ctx.fixups points to the first state argument, which branch1 would either fix up and replace
-    // with its own last instruction destination or leave intact if empty
+    // ctx.fixups points to the first state argument, which branch1 would either fix up with the
+    // address of its first instruction and replace with its own last instruction destination or
+    // leave intact if empty
     branch1();
 
-    // save fixups for later and set ctx.fixups to the second argument, so that the branch2 can fix
+    // save fixups for later and set ctx.fixups to the second argument, so that branch2 can fix
     // it up and replace it or also leave intact
     let fixups_after_branch1: Vec<Fixup> = with_ctx(|ctx| {
         std::mem::replace(&mut ctx.fixups, vec![fixup2.clone()])

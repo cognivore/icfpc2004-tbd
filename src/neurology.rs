@@ -1,3 +1,5 @@
+use std::fmt;
+
 pub use crate::geometry::{
     SenseDir,
     LR,
@@ -11,6 +13,14 @@ pub use crate::phenomenology::{
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct State(pub u16);
+
+
+impl fmt::Display for State {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self.0)
+    }
+}
+
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Instruction {
@@ -34,7 +44,7 @@ impl Instruction {
                 => (st1, Some(st2)),
 
             Instruction::Mark(_, st) |
-            Instruction::Unmark(_, st) | 
+            Instruction::Unmark(_, st) |
             Instruction::Drop(st) |
             Instruction::Turn(_, st)
                 => (st, None),
@@ -51,7 +61,7 @@ impl Instruction {
                 => (st1, Some(st2)),
 
             Instruction::Mark(_, st) |
-            Instruction::Unmark(_, st) | 
+            Instruction::Unmark(_, st) |
             Instruction::Drop(st) |
             Instruction::Turn(_, st)
                 => (st, None),
@@ -133,31 +143,72 @@ impl Instruction {
     }
 }
 
+impl fmt::Display for Instruction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use Instruction::*;
+        match self {
+            Sense(dir, state1, state2, cond) => write!(f, "Sense {} {} {} {}", dir, state1, state2, cond),
+            Mark(marker, state) => write!(f, "Mark {} {}", marker, state),
+            Unmark(marker, state) => write!(f, "Unmark {} {}", marker, state),
+            PickUp(state1, state2) => write!(f, "PickUp {} {}", state1, state2),
+            Drop(state) => write!(f, "Drop {}", state),
+            Turn(lr, state) => write!(f, "Turn {} {}", lr, state),
+            Move(state1, state2) => write!(f, "Move {} {}", state1, state2),
+            Flip(n, state1, state2) => write!(f, "Flip {} {} {}", n, state1, state2),
+        }
+    }
+}
+
+
 pub fn parse_ant(s: &str) -> Vec<Instruction> {
     s.split_terminator('\n').map(Instruction::parse).collect()
 }
 
-#[cfg(test)]
-#[test]
-fn parse_insn_test() {
-    assert_eq!(
-        Instruction::parse(" droP  42  ; zzz"),
-        Instruction::Drop(State(42)))
+
+pub fn dumps(insns: &Vec<Instruction>) -> String {
+    let mut res: String = String::new();
+    for insn in insns.iter() {
+        res.push_str(&insn.to_string());
+        res.push_str("\n")
+    }
+    res
 }
 
-#[cfg(test)]
-#[test]
-fn parse_ant_test() {
-    let s = std::fs::read_to_string("data/example_from_spec.ant").unwrap();
-    let ant = parse_ant(&s);
-    for insn in ant {
-        eprintln!("{:?}", insn);
-    }
-    eprintln!("---");
 
-    let s = std::fs::read_to_string("data/sample.ant").unwrap();
-    let ant = parse_ant(&s);
-    for insn in ant {
-        eprintln!("{:?}", insn);
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_insn_test() {
+        assert_eq!(
+            Instruction::parse(" droP  42  ; zzz"),
+            Instruction::Drop(State(42)))
+    }
+
+    #[test]
+    fn parse_ant_test() {
+        let s = std::fs::read_to_string("data/example_from_spec.ant").unwrap();
+        let ant = parse_ant(&s);
+        for insn in ant {
+            eprintln!("{:?}", insn);
+        }
+        eprintln!("---");
+
+        let s = std::fs::read_to_string("data/sample.ant").unwrap();
+        let ant = parse_ant(&s);
+        for insn in ant {
+            eprintln!("{:?}", insn);
+        }
+    }
+
+    #[test]
+    fn dumps_roundtrip_test() {
+        let s = std::fs::read_to_string("data/sample.ant").unwrap();
+        let ant = parse_ant(&s);
+        let roundtrip = dumps(&ant);
+        for (a, b) in s.split("\n").zip(roundtrip.split("\n")) {
+            assert_eq!(a, b);
+        }
     }
 }

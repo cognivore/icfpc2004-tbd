@@ -1,7 +1,7 @@
 use num_traits::FromPrimitive;
 use num_derive::FromPrimitive;
 
-use std::collections::HashMap;
+use std::{fmt, collections::HashMap};
 
 use crate::prelude::{
     even,
@@ -26,11 +26,26 @@ pub enum SenseDir {
     RightAhead,
 }
 
+impl fmt::Display for SenseDir {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum LR {
     Left,
     Right,
 }
+
+
+impl fmt::Display for LR {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub struct Pos {
