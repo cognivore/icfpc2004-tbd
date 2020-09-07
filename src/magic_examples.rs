@@ -1,9 +1,12 @@
 use crate::magic::*;
-use crate::call;
+use crate::{call, var};
 
 fn looping_ant() -> AntResult<()> {
     loop {
-        call!(drop());
+        for i in 0..3 {
+            var!(let _i = i);
+            call!(drop());
+        }
         call!(drop());
     }
 }

@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::convert::TryInto;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use crate::neurology::{State, Instruction};
 
 #[macro_export]
@@ -12,33 +12,25 @@ macro_rules! call {
             line: line!(),
             column: column!(),
         };
-        crate::magic::call_internal(loc, stringify!($fn_name));
-        let res = $fn_name($($arg)*)?;
-        crate::magic::ret_internal();
-        res
+        let _callret = crate::magic::CallRet::new(loc, stringify!($fn_name));
+        $fn_name($($arg)*)?
     }};
 }
 
+#[macro_export]
 macro_rules! var {
     (let $name:ident = $value:tt) => {
-        let $name = Var::new(stringify!($name), $value);
+        let $name = crate::magic::Var::new(stringify!($name), $value);
     };
     (let $name:ident: $tp:ty = $value:tt) => {
-        let $name: Var<$tp> = Var::new(stringify!($name), $value);
+        let $name: Var<$tp> = crate::magic::Var::new(stringify!($name), $value);
     };
     (let mut $name:ident = $value:tt) => {
-        let mut $name = Var::new(stringify!($name), $value);
+        let mut $name = crate::magic::Var::new(stringify!($name), $value);
     };
     (let mut $name:ident: $tp:ty = $value:tt) => {
-        let mut $name: Var<$tp> = Var::new(stringify!($name), $value);
+        let mut $name: Var<$tp> = crate::magic::Var::new(stringify!($name), $value);
     };
-}
-
-fn looping_ant() -> AntResult<()> {
-    loop {
-        call!(drop());
-        call!(drop());
-    }
 }
 
 thread_local!(static CTX: RefCell<Ctx> = RefCell::new(Ctx::default()));
@@ -93,11 +85,11 @@ pub fn traverse(ant: fn() -> AntResult<()>) -> Vec<(Instruction, String)> {
     let mut paths: Vec<Vec<(Instruction, Branch)>> = vec![vec![]];
 
     while let Some(path) = paths.pop() {
-        dbg!(&path);
         CTX.with(|ctx| *ctx.borrow_mut() = Ctx {
             stack: vec![],
             prerecorded: path.clone(),
         });
+        let _callret = CallRet::new(Loc { file: "compiler", line: 0, column: 0 }, "ant");
         match ant() {
             Ok(_) => panic!("ant shouldn't terminate"),
             Err(SuspensionPoint {
@@ -107,10 +99,8 @@ pub fn traverse(ant: fn() -> AntResult<()>) -> Vec<(Instruction, String)> {
                 let state = *exe_to_state.entry(exe_state.clone()).or_insert_with(|| {
                     let idx = brain.len();
 
-                    // exe_state.iter().rev().find(|f| f.caller )
                     let loc = &exe_state.last().unwrap().caller;
-                    // let file = frame.caller.file.strip_prefix("src/").unwrap();
-                    brain.push((insn, format!("{}:{}", loc.file, loc.line)));  // TODO: source location
+                    brain.push((insn, format!("{}:{}", loc.file, loc.line)));
                     branch_to_state.push(HashMap::new());
                     let state = State(idx.try_into().unwrap());
 
@@ -135,8 +125,6 @@ pub fn traverse(ant: fn() -> AntResult<()>) -> Vec<(Instruction, String)> {
             }
         }
     }
-    // dbg!(brain);
-    // dbg!(branch_to_state);
     assert_eq!(brain.len(), branch_to_state.len());
     brain.into_iter().zip(branch_to_state)
         .map(|((mut insn, comment), branch_to_state)| {
@@ -166,14 +154,15 @@ struct StackFrame {
 }
 
 #[derive(Debug)]
-struct Var<T: Debug> {
+pub struct Var<T: Debug> {
     name: &'static str,
     idx: usize,
     value: T,
 }
 
 impl<T: Debug> Var<T> {
-    fn new(name: &'static str, value: T) -> Self {
+    pub fn new(name: &'static str, value: T) -> Self {
+        // eprintln!("var {:?} created", name);
         let idx = CTX.with(|ctx| {
             let mut ctx = ctx.borrow_mut();
             let f = ctx.stack.last_mut().unwrap();
@@ -183,11 +172,11 @@ impl<T: Debug> Var<T> {
         Self { name, idx, value }
     }
 
-    fn as_ref(&self) -> &T {
+    pub fn as_ref(&self) -> &T {
         &self.value
     }
 
-    fn set(&mut self, new_value: T) {
+    pub fn set(&mut self, new_value: T) {
         self.value = new_value;
         CTX.with(|ctx| {
             let mut ctx = ctx.borrow_mut();
@@ -199,35 +188,46 @@ impl<T: Debug> Var<T> {
 }
 
 impl<T: Debug + Copy> Var<T> {
-    fn get(&self) -> T {
+    pub fn get(&self) -> T {
         self.value
     }
 }
 
 impl<T: Debug> Drop for Var<T> {
     fn drop(&mut self) {
+        // eprintln!("var {:?} dropped", self.name);
         CTX.with(|ctx| {
             let mut ctx = ctx.borrow_mut();
             let f = ctx.stack.last_mut().unwrap();
             let (name, _) = f.vars.pop().unwrap();
             assert_eq!(name, self.name);
+            assert_eq!(f.vars.len(), self.idx);
         })
     }
 }
 
-pub fn call_internal(loc: Loc, fn_name: &'static str) {
-    CTX.with(|ctx| {
-        ctx.borrow_mut().stack.push(StackFrame {
-            caller: loc,
-            fn_name,
-            vars: vec![],
+pub struct CallRet;
+
+impl CallRet {
+    pub fn new(loc: Loc, fn_name: &'static str) -> Self {
+        // eprintln!("call {}", fn_name);
+        CTX.with(|ctx| {
+            ctx.borrow_mut().stack.push(StackFrame {
+                caller: loc,
+                fn_name,
+                vars: vec![],
+            });
         });
-    })
+        Self
+    }
 }
 
-pub fn ret_internal() {
-    CTX.with(|ctx| {
-        let f = ctx.borrow_mut().stack.pop().unwrap();
-        assert!(f.vars.is_empty());
-    })
+impl Drop for CallRet {
+    fn drop(&mut self) {
+        // eprintln!("ret");
+        CTX.with(|ctx| {
+            let f = ctx.borrow_mut().stack.pop().unwrap();
+            assert!(f.vars.is_empty());
+        })        
+    }
 }
