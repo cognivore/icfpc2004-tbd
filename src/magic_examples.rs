@@ -10,7 +10,7 @@ fn looping_ant() -> AntResult<()> {
     loop {
         for i in 0..3 {
             var!(let _i = i);
-            call!(drop());
+            call!(move_());
         }
         call!(drop());
     }
@@ -18,7 +18,5 @@ fn looping_ant() -> AntResult<()> {
 
 // ENTRY_POINT
 pub fn magic_example() {
-    for (i, (insn, comment)) in traverse(looping_ant).into_iter().enumerate() {
-        println!("{:>4}   {:?}    # {}", i, insn, comment);
-    }
+    eprintln!("{:?}", compile(looping_ant));
 }

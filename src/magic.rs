@@ -149,7 +149,21 @@ pub fn flip(p: u16) -> AntResult<bool> {
     })
 }
 
-pub fn traverse(ant: fn() -> AntResult<()>) -> Vec<(Instruction, String)> {
+pub struct AnnotatedBrain(Vec<(Instruction, String)>);
+
+impl std::fmt::Debug for AnnotatedBrain {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let longest = self.0.iter().map(|(insn, _)| format!("{}", insn).len()).max().unwrap();
+        for (i, (insn, comment)) in self.0.iter().enumerate() {
+            let s = format!("{}", insn);
+            writeln!(f, "{:>4}:  {}{}  # {}",
+                i, s, " ".repeat(longest - s.len()), comment)?;
+        }
+        Ok(())
+    }
+}
+
+pub fn compile(ant: fn() -> AntResult<()>) -> AnnotatedBrain {
     let mut exe_to_state: HashMap<ExeState, State> = HashMap::new();
     let mut path_to_state: HashMap<Vec<(Instruction, Branch)>, usize> = HashMap::new();
     
@@ -203,7 +217,7 @@ pub fn traverse(ant: fn() -> AntResult<()>) -> Vec<(Instruction, String)> {
         }
     }
     assert_eq!(brain.len(), branch_to_state.len());
-    brain.into_iter().zip(branch_to_state)
+    AnnotatedBrain(brain.into_iter().zip(branch_to_state)
         .map(|((mut insn, comment), branch_to_state)| {
             assert_eq!(insn.transitions().count(), branch_to_state.len());
             for branch in insn.transitions_mut() {
@@ -211,7 +225,7 @@ pub fn traverse(ant: fn() -> AntResult<()>) -> Vec<(Instruction, String)> {
             }
             (insn, comment)
         })
-        .collect()
+        .collect())
 }
 
 pub type AntResult<T> = Result<T, SuspensionPoint>;
