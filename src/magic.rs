@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::fmt::Debug;
 use std::convert::TryInto;
 use std::collections::HashMap;
+use std::io::Write;
 use crate::{phenomenology::{Marker, SenseCondition}, neurology::{State, Instruction, SenseDir, LR}};
 
 #[macro_export]
@@ -151,12 +152,25 @@ pub fn flip(p: u16) -> AntResult<bool> {
 
 pub struct AnnotatedBrain(Vec<(Instruction, String)>);
 
+impl AnnotatedBrain {
+    pub fn save_to_file(&self, path: &str) {
+        let mut f = std::fs::File::create(path).unwrap();
+        let longest = self.0.iter().map(|(insn, _)| format!("{}", insn).len()).max().unwrap();
+        for (insn, comment) in &self.0 {
+            let s = format!("{}", insn);
+            write!(f, "{}{} ; {}\n",
+                s, " ".repeat(longest - s.len()), comment).unwrap();
+        }        
+    }
+}
+
 impl std::fmt::Debug for AnnotatedBrain {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "AnnotatedBrain:")?;
         let longest = self.0.iter().map(|(insn, _)| format!("{}", insn).len()).max().unwrap();
         for (i, (insn, comment)) in self.0.iter().enumerate() {
             let s = format!("{}", insn);
-            writeln!(f, "{:>4}:  {}{}  # {}",
+            writeln!(f, "{:>4}:  {}{} ; {}",
                 i, s, " ".repeat(longest - s.len()), comment)?;
         }
         Ok(())

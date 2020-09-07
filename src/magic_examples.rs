@@ -53,9 +53,14 @@ fn spiral_ant() -> AntResult<()> {
 // ENTRY_POINT
 pub fn magic_example() {
     eprintln!("looping ant");
-    eprintln!("{:?}", compile(looping_ant));
+    let brain = compile(looping_ant);
+    brain.save_to_file("outputs/looping.ant");
+    eprintln!("{:?}", brain);
     eprintln!();
+
     eprintln!("spiral ant");
-    eprintln!("{:?}", compile(spiral_ant));
+    let brain = compile(spiral_ant);
+    brain.save_to_file("outputs/spiral.ant");
+    eprintln!("{:?}", brain);
     eprintln!();
 }
