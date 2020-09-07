@@ -5,6 +5,7 @@ So AntResult is kind of like AntIO monad.
 
 Such functions should always be invoked using call!() macro,
 and not directly.
+Don't use question mark.
 
 All local variables should be wrapped in var!().
 Use v.get() and v.set() to access them.
@@ -39,7 +40,7 @@ fn looping_ant() -> AntResult<()> {
 fn spiral_ant() -> AntResult<()> {
     var!(let mut k = 1);
 
-    while k.get() <=4 {
+    while k.get() <= 4 {
         call!(move_n(k.get()));
         call!(turn(LR::Left));
         k.set(k.get() * 2);
