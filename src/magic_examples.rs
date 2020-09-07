@@ -1,4 +1,6 @@
 /*
+# Usage
+
 Functions that directly or indirectly call ant IO (like move, sense)
 should return AntResult<T> instead of T.
 So AntResult is kind of like AntIO monad.
@@ -11,6 +13,36 @@ All local variables should be wrapped in var!().
 Use v.get() and v.set() to access them.
 
 This is a hack so maybe there are some limitations that didn't occur to me.
+
+
+# Explanation
+
+The automaton builder invokes ant() multiple times,
+each time making sense() return a different sequence of results.
+In order for this process to terminate, it need to determine which
+execution states are equivalent. We consider states equivant if they
+have same call stacks and local variable values. That's why calls
+and local variable manipulations need to be wrapped in a thing that
+tracks them.
+
+Suppose you have the following code:
+    // BAD
+    let food_here = call!(sense(Here, Food));
+    let food_ahead = call!(sense(Ahead, Food));
+    use food_here and food_ahead
+
+The automaton builder can reach the second call!() in two ways
+(by making the first call!() return either true or false).
+But when it reaches it won't know that the program remembered this outcome
+and it can affect its future behavior. So the generated automaton will have
+a singe state in which it performs the second sense() instruction.
+This is incorrect.
+
+Instead, write
+    // GOOD
+    var!(let food_here = call!(sense(Here, Food)));
+    var!(let food_ahead = call!(sense(Ahead, Food)));
+    use food_here.get() and food_ahead.get()
 */
 
 use crate::magic::*;
