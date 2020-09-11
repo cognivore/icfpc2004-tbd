@@ -1,3 +1,5 @@
+use std::io::Write;
+use crate::neurology::parse_ant;
 use crate::cartography::{
     World,
 };
@@ -13,14 +15,14 @@ use crate::geometry::{
 use crate::biology::Color::*;
 use crate::geography::MapToken::*;
 
-pub fn dump_world(world : World, count : usize) {
-    println!("After round {}...", count);
+pub fn dump_world(world : World, count : usize, w: &mut dyn Write) {
+    writeln!(w).unwrap();
+    writeln!(w, "After round {}...", count).unwrap();
     let mut v: Vec<_> = world.data.into_iter().collect();
     v.sort_by(|(Pos{x,y},_),(Pos{x : a,y : b},_)| (Pos{x : *y,y : *x}).cmp(&(Pos{x : *b,y : *a})));
     for (Pos{x,y},v) in v {
-        println!("cell ({}, {}): {}", x,y, pp(v));
+        writeln!(w, "cell ({}, {}): {}", x,y, pp(v)).unwrap();
     }
-    println!();
 }
 
 fn pp(t : MapToken) -> String {
@@ -72,5 +74,18 @@ fn pp(t : MapToken) -> String {
 
 // ENTRY_POINT
 pub fn dump_ep() {
-    println!("hello world");
+    let w = std::fs::read_to_string("data/tiny.world").unwrap();
+    let mut w = World::from_map_string(&w);
+    let ant_brains = [
+        parse_ant(&std::fs::read_to_string("data/sample.ant").unwrap()),
+        parse_ant(&std::fs::read_to_string("data/sample.ant").unwrap()),
+    ];
+    let mut rng = crate::number_theory::Random::new(12345);
+    let mut result = vec![];
+    writeln!(result, "random seed: 12345").unwrap();
+    for round in 0..=10000 {
+        dump_world(w.clone(), round, &mut result);
+        w.round(&ant_brains, &mut rng);
+    }
+    std::fs::write("outputs/my_dump", result).unwrap();
 }
