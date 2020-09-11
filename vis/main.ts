@@ -346,6 +346,22 @@ async function main() {
                 tooltip += '\nfood: ' + amount;
             }
         })
+        frame.red_markers.forEach(([x, y, markers]) => {
+            if (x == col && y == row) {
+                tooltip += '\nred markers: ';
+                markers.forEach((m, i) => {
+                    if (m) { tooltip += i; }
+                });
+            }
+        })
+        frame.black_markers.forEach(([x, y, markers]) => {
+            if (x == col && y == row) {
+                tooltip += '\nblack markers: ';
+                markers.forEach((m, i) => {
+                    if (m) { tooltip += i; }
+                });
+            }
+        })
         frame.ants.forEach((ant) => {
             if (ant.x == col && ant.y == row) {
                 tooltip += '\n' +
