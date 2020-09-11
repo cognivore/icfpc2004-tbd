@@ -244,11 +244,19 @@ async function main() {
     let highlighted_state: string | null = null;
 
     function update_highlighted_state(new_highlighted_state: string | null) {
+        document.getElementById('red-brain')!.style.display = 'none';
+        document.getElementById('black-brain')!.style.display = 'none';
         if (highlighted_state !== null) {
             document.getElementById(highlighted_state)!.classList.remove('highlighted');
         }
         highlighted_state = new_highlighted_state;
         if (highlighted_state !== null) {
+            if (highlighted_state.startsWith('red-')) {
+                document.getElementById('red-brain')!.style.display = 'block';
+            }
+            if (highlighted_state.startsWith('black-')) {
+                document.getElementById('black-brain')!.style.display = 'block';
+            }
             let el = document.getElementById(highlighted_state)!;
             el.classList.add('highlighted');
             el.scrollIntoView({ block: 'center' });
