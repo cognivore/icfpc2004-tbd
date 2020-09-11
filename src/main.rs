@@ -17,6 +17,7 @@ pub mod structured_compiler;
 pub mod magic_examples;
 pub mod tournament;
 pub mod bouncing_ant;
+pub mod spanning_ant;
 
 // produced by build.rs
 include!(concat!(env!("OUT_DIR"), "/entry_points.rs"));
