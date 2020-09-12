@@ -222,7 +222,7 @@ pub fn vis_server() {
                 "/" => {
                     resp.code("302 Found")
                         .header("Location", "/vis/select_match.html")
-                        .no_body()
+                        .body("")
                 }
                 "/background" => {
                     let m = &query["match"];

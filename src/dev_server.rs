@@ -118,7 +118,8 @@ fn next_request<'a>(
             }
         }
     };
-    // TODO: if there is Content-Length header, read body
+    // TODO: if there is Content-Length or Transfer-Encoding header, read body
+    // (https://tools.ietf.org/html/rfc7230#section-3.3)
     assert_eq!(header_block_end, len);
     let first_line_end = buf.iter().position(|&b| b == b'\n').unwrap();
     let first_line = std::str::from_utf8(&buf[..first_line_end]).unwrap().trim_end();
@@ -169,13 +170,6 @@ impl ResponseHeadersBuilder {
     pub fn header(mut self, name: &str, value: impl std::fmt::Display) -> Self {
         write!(self.buf, "{}: {}\r\n", name, value).unwrap();
         self
-    }
-
-    pub fn no_body(mut self) -> HandlerResult {
-        write!(self.buf, "\r\n").unwrap();
-        self.stream.write_all(&self.buf)?;
-        self.print_status_message();
-        Ok(Some(self.stream))
     }
 
     pub fn body(mut self, body: impl AsRef<[u8]>) -> HandlerResult {
