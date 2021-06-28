@@ -241,7 +241,7 @@ impl CompiledProgram {
         }
 
         let mut insns = vec![];
-        for (file_idx, ast) in asts.iter().enumerate() {
+        for (file_idx, ast) in asts.iter().enumerate().rev() {
             let mut ctx = Ctx {
                 functions: &functions,
                 current_function: None,
