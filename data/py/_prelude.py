@@ -4,14 +4,25 @@ def flip(n):
     return _input() == 1
 
 
+orientation = None  # set to 0 for orientation tracking
+
 def turn_left():
     _output('turn left 0')
     _input()
-
+    global orientation
+    if orientation != None:
+        orientation -= 1
+        if orientation < 0:
+            orientation += 6
 
 def turn_right():
     _output('turn right 0')
     _input()
+    global orientation
+    if orientation != None:
+        orientation += 1
+        if orientation >= 6:
+            orientation -= 6
 
 
 HERE = 'here'

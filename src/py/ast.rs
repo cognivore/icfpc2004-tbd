@@ -409,6 +409,7 @@ impl<'a> Parser<'a> {
         let op = match self.peek_token() {
             (TokenKind::Punct, "=") => None,
             (TokenKind::Punct, "+=") => Some("+"),
+            (TokenKind::Punct, "-=") => Some("-"),
             (TokenKind::Punct, "*=") => Some("*"),
             _ => return Ok(Stmt::Expr(left)),
         };
@@ -530,7 +531,10 @@ impl<'a> Parser<'a> {
                 (TokenKind::Keyword, "and") => ("and", 200, 201),
                 (TokenKind::Punct, "<") => ("<", 400, 401),
                 (TokenKind::Punct, "<=") => ("<=", 400, 401),
+                (TokenKind::Punct, ">") => (">", 400, 401),
+                (TokenKind::Punct, ">=") => (">=", 400, 401),
                 (TokenKind::Punct, "==") => ("==", 400, 401),
+                (TokenKind::Punct, "!=") => ("!=", 400, 401),
                 (TokenKind::Punct, "+") => ("+", 500, 501),
                 (TokenKind::Punct, "-") => ("-", 500, 501),
                 (TokenKind::Punct, "*") => ("*", 600, 601),

@@ -158,8 +158,11 @@ impl State {
                         "-" => a.sub(&b)?,
                         "*" => a.mul(&b)?,
                         "==" => Value::Bool(a.eq(&b)),
+                        "!=" => Value::Bool(!a.eq(&b)),
                         "<" => Value::Bool(a.partial_cmp(&b).expect("TODO") == std::cmp::Ordering::Less),
                         "<=" => Value::Bool(a.partial_cmp(&b).expect("TODO") != std::cmp::Ordering::Greater),
+                        ">" => Value::Bool(a.partial_cmp(&b).expect("TODO") == std::cmp::Ordering::Greater),
+                        ">=" => Value::Bool(a.partial_cmp(&b).expect("TODO") != std::cmp::Ordering::Less),
                         _ => panic!("{:?}", op),
                     };
                     self.value_stack.push(res);
