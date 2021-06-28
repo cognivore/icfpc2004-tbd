@@ -51,6 +51,32 @@ impl Value {
         }
     }
 
+    fn div(&self, other: &Value) -> Result<Value, RuntimeError> {
+        match (self, other) {
+            (Value::Int(a), Value::Int(b)) => if *b == 0 {
+                Err(RuntimeError("division by zero".to_owned()))
+            } else {
+                Ok(Value::Int(a.div_euclid(*b)))
+            }
+            _ => Err(RuntimeError(
+                format!("can't divide {:?} by {:?}", self, other)
+            )),
+        }
+    }
+
+    fn rem(&self, other: &Value) -> Result<Value, RuntimeError> {
+        match (self, other) {
+            (Value::Int(a), Value::Int(b)) => if *b == 0 {
+                Err(RuntimeError("division by zero".to_owned()))
+            } else {
+                Ok(Value::Int(a.rem_euclid(*b)))
+            }
+            _ => Err(RuntimeError(
+                format!("can't divide {:?} by {:?}", self, other)
+            )),
+        }
+    }
+
     fn str(&self) -> Result<Value, RuntimeError> {
         match self {
             Value::Int(a) => Ok(Value::String(format!("{}", a))),
@@ -79,7 +105,7 @@ struct StackFrame {
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct State {
-    globals: BTreeMap<String, Value>,  // for hashability
+    pub globals: BTreeMap<String, Value>,  // for hashability
     call_stack: Vec<StackFrame>,
     value_stack: Vec<Value>,
 
@@ -157,6 +183,8 @@ impl State {
                         "+" => a.add(&b)?,
                         "-" => a.sub(&b)?,
                         "*" => a.mul(&b)?,
+                        "/" => a.div(&b)?,
+                        "%" => a.rem(&b)?,
                         "==" => Value::Bool(a.eq(&b)),
                         "!=" => Value::Bool(!a.eq(&b)),
                         "<" => Value::Bool(a.partial_cmp(&b).expect("TODO") == std::cmp::Ordering::Less),

@@ -411,6 +411,8 @@ impl<'a> Parser<'a> {
             (TokenKind::Punct, "+=") => Some("+"),
             (TokenKind::Punct, "-=") => Some("-"),
             (TokenKind::Punct, "*=") => Some("*"),
+            (TokenKind::Punct, "/=") => Some("/"),
+            (TokenKind::Punct, "%=") => Some("%"),
             _ => return Ok(Stmt::Expr(left)),
         };
         
@@ -538,6 +540,8 @@ impl<'a> Parser<'a> {
                 (TokenKind::Punct, "+") => ("+", 500, 501),
                 (TokenKind::Punct, "-") => ("-", 500, 501),
                 (TokenKind::Punct, "*") => ("*", 600, 601),
+                (TokenKind::Punct, "/") => ("/", 600, 601),
+                (TokenKind::Punct, "%") => ("%", 600, 601),
                 _ => break,
             };
             assert_ne!(l_bp, min_bp, "ambiguous binding power");

@@ -12,8 +12,7 @@ def turn_left():
     global orientation
     if orientation != None:
         orientation -= 1
-        if orientation < 0:
-            orientation += 6
+        orientation %= 6
 
 def turn_right():
     _output('turn right 0')
@@ -21,8 +20,7 @@ def turn_right():
     global orientation
     if orientation != None:
         orientation += 1
-        if orientation >= 6:
-            orientation -= 6
+        orientation %= 6
 
 
 HERE = 'here'
@@ -36,13 +34,17 @@ FRIEND_WITH_FOOD = 'friendwithfood'
 FOE_WITH_FOOD = 'foewithfood'
 FOOD = 'food'
 ROCK = 'rock'
-# TODO: marker i
 FOE_MARKER = 'foemarker'
 HOME = 'home'
 FOE_HOME = 'foehome'
 
 def sense(dir, cond):
     _output('sense ' + dir + ' 1 0 ' + cond)
+    return _input() == 1
+
+
+def sense_marker(dir, marker_no):
+    _output('sense ' + dir + ' 1 0 marker ' + str(marker_no))
     return _input() == 1
 
 
@@ -55,6 +57,16 @@ def drop():
     _output('drop 0')
     _input()
 
+
 def move():
     _output('move 1 0')
     return _input() == 1
+
+
+def mark(marker_no):
+    _output('mark ' + str(marker_no) + ' 0')
+    _input()
+
+def unmark(marker_no):
+    _output('unmark ' + str(marker_no) + ' 0')
+    _input()

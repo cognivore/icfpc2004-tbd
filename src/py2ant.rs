@@ -34,11 +34,12 @@ fn run_to_input(vm_state: &mut vm::State, cp: &CompiledProgram) -> Vec<Value> {
 struct Node {
     insn: Instruction,
     edges: Vec<(State, usize)>,
+    comment: String,
 }
 
 impl Node {
-    fn new(insn: Instruction) -> Self {
-        Node { insn, edges: vec![] }
+    fn new(insn: Instruction, comment: String) -> Self {
+        Node { insn, edges: vec![], comment }
     }
 
     fn patched_insn(&self) -> Instruction {
@@ -71,7 +72,7 @@ fn unroll_dfa(_lfs: &LoadedFiles, cp: &CompiledProgram) -> BrainWithSymbols {
 
     let idx = nodes.len();
     idx_map.insert((vm_state.clone(), insn), idx);
-    nodes.push(Node::new(insn));
+    nodes.push(Node::new(insn, format!("{:?}", vm_state.globals)));
 
     let mut worklist = vec![(idx, vm_state, insn.transitions().count())];
     while let Some((idx, vm_state, num_transitions)) = worklist.pop() {
@@ -89,13 +90,19 @@ fn unroll_dfa(_lfs: &LoadedFiles, cp: &CompiledProgram) -> BrainWithSymbols {
                 nodes[idx].edges.push((state, idx2));
             }).or_insert_with_key(|(vm_state2, insn2)| {
                 let idx2 = nodes.len();
-                nodes.push(Node::new(*insn2));
+                nodes.push(Node::new(*insn2, format!("{:?}", vm_state2.globals)));
                 worklist.push((idx2, vm_state2.clone(), insn2.transitions().count()));
                 nodes[idx].edges.push((state, idx2));
                 idx2
             });
         }
     }
+
+    println!();
+    for (i, node) in nodes.iter().enumerate() {
+        println!("{:>4}:  {}  ; {}", i, node.insn, node.comment);
+    }
+    println!();
 
     BrainWithSymbols {
         insns: nodes.iter().map(|node| node.patched_insn()).collect(),
