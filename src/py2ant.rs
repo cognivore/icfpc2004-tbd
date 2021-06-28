@@ -11,21 +11,9 @@ struct BrainWithSymbols {
     insns: Vec<Instruction>,
 }
 
-fn outputs_to_insn_and_transitions(outputs: &[Value]) -> (Instruction, Vec<(State, Value)>) {
-    let cmd = match &outputs[0] {
-        Value::String(s) => s,
-        _ => panic!("{:?}", outputs),
-    };
-    match cmd.as_str() {
-        "flip" => {
-            let n = match outputs[1..] {
-                [Value::Int(n)] => n,
-                _ => panic!("{:?}", outputs),
-            };
-            (Instruction::Flip(n.try_into().unwrap(), State(1), State(0)),
-                vec![(State(1), Value::Bool(true)),
-                     (State(0), Value::Bool(false))])
-        }
+fn outputs_to_insn(outputs: &[Value]) -> Instruction {
+    match outputs {
+        [Value::String(cmd)] => Instruction::parse(cmd),
         _ => panic!("{:?}", outputs),
     }
 }
@@ -76,30 +64,33 @@ fn unroll_dfa(_lfs: &LoadedFiles, cp: &CompiledProgram) -> BrainWithSymbols {
     let mut vm_state = vm::State::new();
     let mut nodes = vec![];
     #[allow(clippy::type_complexity)]
-    let mut idx_map: HashMap<(vm::State, Instruction, Vec<(State, Value)>), usize> = HashMap::new();
+    let mut idx_map: HashMap<(vm::State, Instruction), usize> = HashMap::new();
 
     let outputs = run_to_input(&mut vm_state, cp);
-    let (insn, transitions) = outputs_to_insn_and_transitions(&outputs);
+    let insn = outputs_to_insn(&outputs);
 
     let idx = nodes.len();
-    idx_map.insert((vm_state.clone(), insn, transitions.clone()), idx);
+    idx_map.insert((vm_state.clone(), insn), idx);
     nodes.push(Node::new(insn));
 
-    let mut worklist = vec![(idx, vm_state, transitions)];
-    while let Some((idx, vm_state, transitions)) = worklist.pop() {
+    let mut worklist = vec![(idx, vm_state, insn.transitions().count())];
+    while let Some((idx, vm_state, num_transitions)) = worklist.pop() {
         assert!(nodes[idx].edges.is_empty());
-        for (state, input) in transitions {
+        for i in 0..num_transitions {
+            let state = State(i.try_into().unwrap());
+            let input = Value::Int(i.try_into().unwrap());
+
             let mut vm_state2 = vm_state.clone();
             vm_state2.give_input(input);
             let outputs = run_to_input(&mut vm_state2, cp);
-            let (insn2, transitions2) = outputs_to_insn_and_transitions(&outputs);
+            let insn2 = outputs_to_insn(&outputs);
 
-            idx_map.entry((vm_state2, insn2, transitions2)).and_modify(|&mut idx2| {
+            idx_map.entry((vm_state2, insn2)).and_modify(|&mut idx2| {
                 nodes[idx].edges.push((state, idx2));
-            }).or_insert_with_key(|(vm_state2, insn2, transitions2)| {
+            }).or_insert_with_key(|(vm_state2, insn2)| {
                 let idx2 = nodes.len();
                 nodes.push(Node::new(*insn2));
-                worklist.push((idx2, vm_state2.clone(), transitions2.clone()));
+                worklist.push((idx2, vm_state2.clone(), insn2.transitions().count()));
                 nodes[idx].edges.push((state, idx2));
                 idx2
             });

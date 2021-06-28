@@ -76,6 +76,7 @@ pub struct AnyError {
 pub enum Insn {
     Pop,
     PushConst(Value),
+    UnOp(&'static str),
     BinOp(&'static str),
     PushGlobal(String),
     PopGlobal(String),
@@ -104,6 +105,7 @@ impl Insn {
         match self {
             Insn::Pop => "pop".to_string(),
             Insn::PushConst(c) => format!("push {:?}", c),
+            Insn::UnOp(op) => format!("unop {:?}", op),
             Insn::BinOp(op) => format!("binop {:?}", op),
             Insn::PushGlobal(v) => format!("push global {}", v),
             Insn::PopGlobal(v) => format!("pop global {}", v),
@@ -472,6 +474,12 @@ fn compile_expr(e: &Expr, ctx: &mut Ctx) -> Result<(), CompileError> {
             };
 
             match name.as_str() {
+                "str" => {
+                    assert_eq!(args.len(), 1);
+                    ctx.insns.push(Insn::UnOp("str"));
+                    compile_expr(&args[0], ctx)?;
+                    return Ok(());
+                }
                 "_output" => {
                     assert_eq!(args.len(), 1);
                     ctx.insns.push(Insn::PushConst(Value::None));

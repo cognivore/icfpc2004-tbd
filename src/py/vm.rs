@@ -26,6 +26,7 @@ impl Value {
     fn add(&self, other: &Value) -> Result<Value, RuntimeError> {
         match (self, other) {
             (Value::Int(a), Value::Int(b)) => Ok(Value::Int(*a + *b)),
+            (Value::String(a), Value::String(b)) => Ok(Value::String(format!("{}{}", a, b))),
             _ => Err(RuntimeError(
                 format!("can't add {:?} and {:?}", self, other)
             )),
@@ -46,6 +47,15 @@ impl Value {
             (Value::Int(a), Value::Int(b)) => Ok(Value::Int(*a * *b)),
             _ => Err(RuntimeError(
                 format!("can't multiply {:?} and {:?}", self, other)
+            )),
+        }
+    }
+
+    fn str(&self) -> Result<Value, RuntimeError> {
+        match self {
+            Value::Int(a) => Ok(Value::String(format!("{}", a))),
+            _ => Err(RuntimeError(
+                format!("can't call str() on {:?}", self)
             )),
         }
     }
@@ -132,6 +142,14 @@ impl State {
                 }
                 Insn::PushConst(c) =>
                     self.value_stack.push(c.clone()),
+                &Insn::UnOp(op) => {
+                    let a = self.value_stack.pop().unwrap();
+                    let res = match op {
+                        "str" => a.str()?,
+                        _ => panic!("{:?}", op),
+                    };
+                    self.value_stack.push(res);
+                }
                 &Insn::BinOp(op) => {
                     let b = self.value_stack.pop().unwrap();
                     let a = self.value_stack.pop().unwrap();
