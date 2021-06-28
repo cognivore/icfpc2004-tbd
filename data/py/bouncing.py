@@ -27,7 +27,7 @@ while True:
             has_food = False
             turn_around()
     else:
-        if sense(HERE, FOOD) and pick_up():
+        if sense(HERE, FOOD) and not sense(HERE, HOME) and pick_up():
             has_food = True
             turn_around()
 
