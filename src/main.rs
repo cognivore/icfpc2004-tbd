@@ -18,6 +18,8 @@ pub mod magic_examples;
 pub mod tournament;
 pub mod bouncing_ant;
 pub mod spanning_ant;
+pub mod py;
+pub mod py2ant;
 
 // produced by build.rs
 include!(concat!(env!("OUT_DIR"), "/entry_points.rs"));
