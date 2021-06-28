@@ -1,3 +1,6 @@
+#![allow(clippy::collapsible_if)]
+#![allow(clippy::collapsible_else_if)]
+
 use crate::magic::*;
 use crate::neurology::{LR, SenseDir, SenseCondition};
 use crate::{call, var};

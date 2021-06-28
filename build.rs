@@ -27,7 +27,7 @@ fn traverse_dir(path: &Path, qs: &mut String, cb: &mut impl FnMut(&str, &str)) {
                 let end = line.find("()").unwrap();
                 let fn_name = &line[..end];
                 println!("fn {}", fn_name);
-                cb(fn_name, &qs);
+                cb(fn_name, qs);
             }
         }
         qs.truncate(old_len);
@@ -37,7 +37,7 @@ fn traverse_dir(path: &Path, qs: &mut String, cb: &mut impl FnMut(&str, &str)) {
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     let mut name_to_qs = std::collections::HashMap::new();
-    traverse_dir(&Path::new("src"), &mut String::new(), &mut |fn_name, qs| {
+    traverse_dir(Path::new("src"), &mut String::new(), &mut |fn_name, qs| {
         println!();
         if let Some(old_qs) = name_to_qs.insert(fn_name.to_string(), qs.to_string()) {
             println!("Duplicate entry point name {:?} in", fn_name);

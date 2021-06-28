@@ -165,11 +165,11 @@ pub fn parse_ant(s: &str) -> Vec<Instruction> {
 }
 
 
-pub fn dumps(insns: &Vec<Instruction>) -> String {
+pub fn dumps(insns: &[Instruction]) -> String {
     let mut res: String = String::new();
     for insn in insns.iter() {
         res.push_str(&insn.to_string());
-        res.push_str("\n")
+        res.push('\n');
     }
     res
 }
@@ -207,7 +207,7 @@ mod tests {
         let s = std::fs::read_to_string("data/sample.ant").unwrap();
         let ant = parse_ant(&s);
         let roundtrip = dumps(&ant);
-        for (a, b) in s.split("\n").zip(roundtrip.split("\n")) {
+        for (a, b) in s.split('\n').zip(roundtrip.split('\n')) {
             assert_eq!(a, b);
         }
     }

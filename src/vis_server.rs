@@ -226,14 +226,14 @@ pub fn vis_server() {
                 }
                 "/background" => {
                     let m = &query["match"];
-                    let m: Match = serde_json::from_str(&m).unwrap();
+                    let m: Match = serde_json::from_str(m).unwrap();
                     let bg = Background::new(&m);
                     resp.code("200 OK")
                         .body(serde_json::to_vec(&bg).unwrap())
                 }
                 "/frame" => {
                     let m = &query["match"];
-                    let m: Match = serde_json::from_str(&m).unwrap();
+                    let m: Match = serde_json::from_str(m).unwrap();
                     let frame_no = query["frame_no"].parse().unwrap();
 
                     let frame = cache.lock().unwrap()

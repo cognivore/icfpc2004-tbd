@@ -219,7 +219,7 @@ impl World {
         world
     }
 
-    fn parse<'w>(map : &'w str) -> IResult<&'w str, World> {
+    fn parse(map : &str) -> IResult<&str, World> {
         match separated_pair(
             digit1,
             tag("\n"),
@@ -278,6 +278,7 @@ impl World {
     pub fn surrounding_ants_amount(&self, p : Pos, c : Color) -> u8 {
         let mut count = 0;
         let adj_cells = self.adj_features(p);
+        #[allow(clippy::manual_flatten)]
         for a in adj_cells.values() {
             if let Ok(Clear(Contents { ant : Some(ant), .. } )) = a {
                 if ant.color == c {
@@ -413,11 +414,7 @@ impl World {
     }
 
     pub fn find_ant(&self, id : u8) -> Option<Pos> {
-        if let Some(pos) = self.ant_positions.get(&id) {
-            Some(*pos)
-        } else {
-            None
-        }
+        self.ant_positions.get(&id).copied()
     }
 
     pub fn ant_by_id(self, id : u8) -> Option<Ant> {
@@ -454,8 +451,8 @@ impl Display for World {
 // Parse functions
 //------------------------------------------------------------------
 
-fn parse_world<'a>(x : usize, y : usize, w0 : World, input : &'a str)
--> IResult<&'a str, World>
+fn parse_world(x : usize, y : usize, w0 : World, input : &str)
+-> IResult<&str, World>
 {
     //println!("{:?}", w0);
     match delimited(

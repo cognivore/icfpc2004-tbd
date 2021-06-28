@@ -1,3 +1,6 @@
+#![allow(clippy::collapsible_if)]
+#![allow(clippy::collapsible_else_if)]
+
 use crate::magic::*;
 use crate::phenomenology::Marker;
 use crate::geometry::{self, Dir};

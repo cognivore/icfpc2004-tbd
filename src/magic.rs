@@ -158,7 +158,7 @@ impl AnnotatedBrain {
         let longest = self.0.iter().map(|(insn, _)| format!("{}", insn).len()).max().unwrap();
         for (insn, comment) in &self.0 {
             let s = format!("{}", insn);
-            write!(f, "{}{} ; {}\n",
+            writeln!(f, "{}{} ; {}",
                 s, " ".repeat(longest - s.len()), comment).unwrap();
         }        
     }
@@ -288,6 +288,7 @@ impl<T: Debug> Var<T> {
         Self { name, idx, value }
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn as_ref(&self) -> &T {
         &self.value
     }
